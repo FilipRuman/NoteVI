@@ -18,8 +18,8 @@ fn handle_normal_mode(editor_values: &EditorValues, event: KeyEvent) -> Vec<Acti
 
         crossterm::event::KeyCode::Char('h') => output.push(Action::MoveCursor(-1, 0)),
         crossterm::event::KeyCode::Char('l') => output.push(Action::MoveCursor(1, 0)),
-        crossterm::event::KeyCode::Char('j') => output.push(Action::MoveCursor(0, -1)),
-        crossterm::event::KeyCode::Char('k') => output.push(Action::MoveCursor(0, 1)),
+        crossterm::event::KeyCode::Char('j') => output.push(Action::MoveCursor(0, 1)),
+        crossterm::event::KeyCode::Char('k') => output.push(Action::MoveCursor(0, -1)),
 
         crossterm::event::KeyCode::Char('i') => output.push(Action::InsertMode),
         crossterm::event::KeyCode::Char('a') => {
@@ -41,6 +41,24 @@ fn handle_insert_mode(editor_values: &EditorValues, event: KeyEvent) -> Vec<Acti
         }
         crossterm::event::KeyCode::Esc => {
             output.push(Action::NormalMode);
+        }
+        crossterm::event::KeyCode::Backspace => {
+            if editor_values.cursor_x > 0 {
+                output.push(Action::RemoveText(
+                    editor_values.cursor_x - 1,
+                    editor_values.cursor_x,
+                    editor_values.cursor_y,
+                    true,
+                ));
+            }
+        }
+        crossterm::event::KeyCode::Delete => {
+            output.push(Action::RemoveText(
+                editor_values.cursor_x,
+                editor_values.cursor_x + 1,
+                editor_values.cursor_y,
+                false,
+            ));
         }
         _ => {}
     };
