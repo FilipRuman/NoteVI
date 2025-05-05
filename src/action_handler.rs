@@ -1,16 +1,15 @@
+use crate::{EditMode, EditorValues, buffer::Buffer};
+use crossterm::{
+    ExecutableCommand, QueueableCommand, cursor,
+    style::{self, Stylize, style},
+    terminal::size,
+};
 use std::{
     cmp::{max, min},
     io::Stdout,
     u16, usize,
 };
 
-use crossterm::{
-    ExecutableCommand, QueueableCommand, cursor,
-    style::{self, Stylize, style},
-    terminal::size,
-};
-
-use crate::{EditMode, EditorValues, buffer::Buffer};
 #[derive(Clone, Debug)]
 pub enum Action {
     MoveCursor {

@@ -9,7 +9,11 @@ mod key_handler;
 mod logger;
 #[path = "./input/shortcuts.rs"]
 mod shortcuts;
-
+//
+// extern crate strum;
+// #[macro_use]
+// extern crate strum_macros;
+//
 use action_handler::Action;
 use buffer::Buffer;
 use crossterm::{
@@ -23,6 +27,7 @@ use std::{
     env::consts,
     fmt::format,
     io::{Write, stdout},
+    str::FromStr,
 };
 
 pub struct EditorValues {
@@ -40,6 +45,11 @@ pub enum EditMode {
 pub const LOGGING_PATH: &str = "./logs/logs.md";
 fn main() {
     let mut logger = Logger::new(LOGGING_PATH.to_string());
+
+    // logger.log(format!(
+    //     "Test : {:?}",
+    //     Shortcut::new_parse_keystrokes("_c", [Action::NormalMode].to_vec())
+    // ));
     logger.log("\n\n# ------------    init    ------------\n\n".to_string());
 
     // logger.log(format!(
@@ -60,6 +70,7 @@ fn main() {
 
     let mut buffer = Buffer::new();
     let mut stdout = init(&editor_values);
+    logger.log("# Start key handler".to_string());
 
     let mut key_handler = KeyHandler::new(
         shortcuts::get_shortcuts_normal(),

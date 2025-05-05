@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::format, usize};
+use std::{char, collections::HashMap, fmt::format, ops::ControlFlow, process::Output, usize};
 
 use crossterm::event::KeyCode;
 
@@ -156,9 +156,33 @@ impl Shortcut {
     ) -> Shortcut {
         let mut ctrl = false;
         let mut parsed: Vec<Keystroke> = Vec::new();
-        for char in keystrokes.chars() {
+        let chars = keystrokes.chars().collect::<Vec<char>>();
+        let length = keystrokes.len();
+
+        let mut i = 0;
+        while i < length {
+            let char = chars[i];
             if char == '_' {
                 ctrl = true;
+                i += 1;
+                continue;
+            }
+            if char == '<' {
+                //Move past <
+                i += 1;
+                let mut text_inside = String::new();
+                while chars[i] != '>' {
+                    text_inside += &chars[i].to_string();
+                    i += 1;
+                }
+                //Move past >
+                i += 1;
+
+                let keystroke = match match_string_inside_caret_to_a_key(ctrl, text_inside) {
+                    Some(value) => value,
+                    None => continue,
+                };
+                parsed.push(keystroke);
                 continue;
             }
 
@@ -167,9 +191,11 @@ impl Shortcut {
                 keycode: KeyCode::Char(char),
             });
             ctrl = false;
+            i += 1;
         }
-
-        Shortcut::new(parsed, actions_after_activations)
+        let output = Shortcut::new(parsed, actions_after_activations);
+        Logger::default_log(format!("Parsed shortcut: {:?}", output,));
+        return output;
     }
     // splits keystrokes to vectors of higher and higher lengths so you can later see if current
     // keystrokes could lead to a shortcut or not
@@ -190,6 +216,35 @@ impl Shortcut {
 
         output
     }
+}
+
+fn match_string_inside_caret_to_a_key(ctrl: bool, text_inside: String) -> Option<Keystroke> {
+    let keystroke = match text_inside.as_str() {
+        "Escape" => Keystroke {
+            ctrl,
+            keycode: KeyCode::Esc,
+        },
+        "Enter" => Keystroke {
+            ctrl,
+            keycode: KeyCode::Enter,
+        },
+        "Delete" => Keystroke {
+            ctrl,
+            keycode: KeyCode::Delete,
+        },
+        "Backspace" => Keystroke {
+            ctrl,
+            keycode: KeyCode::Backspace,
+        },
+        "Tab" => Keystroke {
+            ctrl,
+            keycode: KeyCode::Tab,
+        },
+        _ => {
+            return None;
+        }
+    };
+    Some(keystroke)
 }
 #[derive(Clone, Copy, Hash, PartialEq, Eq, Debug)]
 pub struct Keystroke {
