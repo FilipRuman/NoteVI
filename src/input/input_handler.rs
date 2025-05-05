@@ -1,0 +1,83 @@
+use crossterm::event::Event;
+use crossterm::event::{KeyEvent, KeyModifiers};
+
+use crate::{
+    EditorValues,
+    action_handler::Action,
+    key_handler::{KeyHandler, Keystroke},
+};
+
+pub fn handle_input(
+    editor_values: &EditorValues,
+    event: KeyEvent,
+    key_handler: &mut KeyHandler,
+) -> Vec<Action> {
+    let mut ctrl = false;
+    for modifier in event.modifiers.iter() {
+        match modifier {
+            KeyModifiers::CONTROL => ctrl = true,
+            _ => {}
+        }
+    }
+
+    let key_stroke = Keystroke {
+        ctrl,
+        keycode: event.code,
+    };
+
+    key_handler.handle_new_keystroke(key_stroke, &editor_values)
+}
+
+// fn handle_normal_mode(editor_values: &EditorValues, event: KeyEvent) -> Vec<Action> {
+//     let mut output: Vec<Action> = Vec::new();
+//
+//     match event.code {
+//         crossterm::event::KeyCode::Char('q') => output.push(Action::Quit),
+//         crossterm::event::KeyCode::Char('h') => output.push(Action::MoveCursor(-1, 0)),
+//         crossterm::event::KeyCode::Char('l') => output.push(Action::MoveCursor(1, 0)),
+//         crossterm::event::KeyCode::Char('j') => output.push(Action::MoveCursor(0, 1)),
+//         crossterm::event::KeyCode::Char('k') => output.push(Action::MoveCursor(0, -1)),
+//
+//         crossterm::event::KeyCode::Char('i') => output.push(Action::InsertMode),
+//         crossterm::event::KeyCode::Char('a') => {
+//             output.push(Action::InsertMode);
+//             output.push(Action::MoveCursor(1, 0));
+//         }
+//         _ => {}
+//     };
+//
+//     output
+// }
+//
+// fn handle_insert_mode(editor_values: &EditorValues, event: KeyEvent) -> Vec<Action> {
+//     let mut output: Vec<Action> = Vec::new();
+//
+//     match event.code {
+//         crossterm::event::KeyCode::Char(c) => {
+//             output.push(Action::WriteText(c.to_string()));
+//         }
+//         crossterm::event::KeyCode::Esc => {
+//             output.push(Action::NormalMode);
+//         }
+//         crossterm::event::KeyCode::Backspace => {
+//             if editor_values.cursor_x > 0 {
+//                 output.push(Action::RemoveText(
+//                     editor_values.cursor_x - 1,
+//                     editor_values.cursor_x,
+//                     editor_values.cursor_y,
+//                     true,
+//                 ));
+//             }
+//         }
+//         crossterm::event::KeyCode::Delete => {
+//             output.push(Action::RemoveText(
+//                 editor_values.cursor_x,
+//                 editor_values.cursor_x + 1,
+//                 editor_values.cursor_y,
+//                 false,
+//             ));
+//         }
+//         _ => {}
+//     };
+//     output
+// }

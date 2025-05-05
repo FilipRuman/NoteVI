@@ -1,16 +1,28 @@
 mod action_handler;
 mod buffer;
+#[path = "./input/input_handler.rs"]
 mod input_handler;
+#[path = "./input/key_handler.rs"]
+mod key_handler;
+
+#[path = "./debugging/logger.rs"]
+mod logger;
+#[path = "./input/shortcuts.rs"]
+mod shortcuts;
+
+use action_handler::Action;
 use buffer::Buffer;
 use crossterm::{
     ExecutableCommand, QueueableCommand, cursor,
-    event::{self, Event, KeyEvent, read},
-    style::{self, Stylize},
+    event::{self, Event, read},
     terminal::{self, DisableLineWrap, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use key_handler::{KeyHandler, Keystroke, Shortcut};
+use logger::Logger;
 use std::{
-    boxed,
-    io::{Cursor, Write, stdout},
+    env::consts,
+    fmt::format,
+    io::{Write, stdout},
 };
 
 pub struct EditorValues {
@@ -19,12 +31,26 @@ pub struct EditorValues {
     mode: EditMode,
     quit: bool,
 }
+#[derive(Debug)]
 pub enum EditMode {
     Normal,
     Insert,
 }
 
+pub const LOGGING_PATH: &str = "./logs/logs.md";
 fn main() {
+    let mut logger = Logger::new(LOGGING_PATH.to_string());
+    logger.log("\n\n# ------------    init    ------------\n\n".to_string());
+
+    // logger.log(format!(
+    //     "## test shortcut parse 1.: {:?}",
+    //     Shortcut::new_parse_keystrokes("IoWo_DD", [Action::ToDo].to_vec())
+    // ));
+    // logger.log(format!(
+    //     "## test shortcut parse 2.: {:?}",
+    //     Shortcut::new_parse_keystrokes("_I_DD", [Action::InsertMode].to_vec())
+    // ));
+
     let mut editor_values = EditorValues {
         cursor_y: 1,
         cursor_x: 0,
@@ -35,12 +61,20 @@ fn main() {
     let mut buffer = Buffer::new();
     let mut stdout = init(&editor_values);
 
+    let mut key_handler = KeyHandler::new(
+        shortcuts::get_shortcuts_normal(),
+        shortcuts::get_shortcuts_input(),
+    );
+
+    logger.log("\n # start end \n".to_string());
+
     loop {
         stdout.flush().unwrap();
 
         match read().unwrap() {
             crossterm::event::Event::Key(event) => {
-                let actions = input_handler::handle_input(&mut editor_values, event);
+                let actions =
+                    input_handler::handle_input(&mut editor_values, event, &mut key_handler);
                 action_handler::handle_actions(
                     &mut editor_values,
                     &mut stdout,
@@ -57,21 +91,26 @@ fn main() {
 
     exit(stdout);
 }
-
+const MOVE_TO_ALTERNATIVE_SCREEN: bool = true;
 fn exit(mut stdout: std::io::Stdout) {
-    stdout
-        .execute(terminal::Clear(terminal::ClearType::All))
-        .unwrap();
-
-    stdout.execute(LeaveAlternateScreen).unwrap();
+    if MOVE_TO_ALTERNATIVE_SCREEN {
+        stdout
+            .execute(terminal::Clear(terminal::ClearType::All))
+            .unwrap();
+        stdout.execute(LeaveAlternateScreen).unwrap();
+    }
     terminal::disable_raw_mode();
 }
 
 fn init(editor_values: &EditorValues) -> std::io::Stdout {
     let mut stdout = stdout();
+
     terminal::enable_raw_mode();
-    stdout.execute(EnterAlternateScreen).unwrap();
-    stdout.execute(DisableLineWrap).unwrap();
+
+    if MOVE_TO_ALTERNATIVE_SCREEN {
+        stdout.execute(EnterAlternateScreen).unwrap();
+        stdout.execute(DisableLineWrap).unwrap();
+    }
 
     stdout
         .queue(cursor::MoveTo(

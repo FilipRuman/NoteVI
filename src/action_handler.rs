@@ -11,17 +11,35 @@ use crossterm::{
 };
 
 use crate::{EditMode, EditorValues, buffer::Buffer};
-
+#[derive(Clone, Debug)]
 pub enum Action {
-    MoveCursor(i32, i32),
-    ChangeCursorPosition(i32, i32),
+    MoveCursor {
+        x: i32,
+        y: i32,
+    },
+    ChangeCursorPosition {
+        x: i32,
+        y: i32,
+    },
     InsertText(String),
     WriteText(String),
-    RemoveText(usize, usize, usize, bool),
+    RemoveText {
+        from: usize,
+        to: usize,
+        line: usize,
+        move_cursor_back: bool,
+    },
+    BackspaceLetters {
+        count: usize,
+    },
+    DeleteLetters {
+        count: usize,
+    },
 
     Quit,
     NormalMode,
     InsertMode,
+    ToDo,
 }
 
 pub fn handle_actions(
@@ -32,7 +50,7 @@ pub fn handle_actions(
 ) {
     for action in actions {
         match action {
-            Action::MoveCursor(x, y) => move_cursor_by(x, y, editor_values, stdout, buffer),
+            Action::MoveCursor { x, y } => move_cursor_by(x, -y, editor_values, stdout, buffer),
             Action::InsertText(_) => todo!(),
             Action::Quit => editor_values.quit = true,
             Action::NormalMode => {
@@ -45,10 +63,49 @@ pub fn handle_actions(
                 editor_values.mode = EditMode::Insert;
                 stdout.execute(cursor::SetCursorStyle::BlinkingBar).unwrap();
             }
-            Action::ChangeCursorPosition(_, _) => todo!(),
+            Action::ChangeCursorPosition { x: _, y: _ } => todo!(),
             Action::WriteText(text) => write_text(text, editor_values, stdout, buffer),
-            Action::RemoveText(from, to, line, move_back) => {
-                remove_text(from, to, line, editor_values, stdout, buffer, move_back)
+            Action::RemoveText {
+                from,
+                to,
+                line,
+                move_cursor_back,
+            } => remove_text(
+                from,
+                to,
+                line,
+                editor_values,
+                stdout,
+                buffer,
+                move_cursor_back,
+            ),
+            Action::ToDo => todo!(),
+            Action::BackspaceLetters { count } => {
+                // so i don't  subtract with overflow :D
+                if editor_values.cursor_x >= count {
+                    remove_text(
+                        editor_values.cursor_x - count,
+                        editor_values.cursor_x,
+                        editor_values.cursor_y,
+                        editor_values,
+                        stdout,
+                        buffer,
+                        true,
+                    )
+                }
+            }
+            Action::DeleteLetters { count } => {
+                if count <= buffer.get_layer_len(editor_values.cursor_y) {
+                    remove_text(
+                        editor_values.cursor_x,
+                        editor_values.cursor_x + count,
+                        editor_values.cursor_y,
+                        editor_values,
+                        stdout,
+                        buffer,
+                        false,
+                    )
+                }
             }
         }
     }
@@ -91,12 +148,10 @@ fn move_cursor_by(
     editor_values.cursor_x = global_x;
     editor_values.cursor_y = global_y;
 
-    stdout
-        .queue(cursor::MoveTo(
-            editor_values.cursor_x as u16,
-            editor_values.cursor_y as u16 - 1,
-        ))
-        .expect("cursor move did not Succeed");
+    stdout.queue(cursor::MoveTo(
+        editor_values.cursor_x as u16,
+        editor_values.cursor_y as u16 - 1,
+    ));
 }
 fn move_cursor_up_to(x: usize, y: usize, editor_values: &mut EditorValues, stdout: &mut Stdout) {
     let size = size().unwrap();
