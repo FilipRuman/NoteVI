@@ -17,11 +17,7 @@ mod logger;
 mod shortcuts;
 #[path = "./input/shortcuts_parser.rs"]
 mod shortcuts_parser;
-//
-// extern crate strum;
-// #[macro_use]
-// extern crate strum_macros;
-//
+
 use action_handler::Action;
 use buffer::Buffer;
 use crossterm::{
@@ -107,7 +103,7 @@ fn main() {
 
     exit(stdout);
 }
-const MOVE_TO_ALTERNATIVE_SCREEN: bool = false;
+const MOVE_TO_ALTERNATIVE_SCREEN: bool = true;
 fn exit(mut stdout: std::io::Stdout) {
     if MOVE_TO_ALTERNATIVE_SCREEN {
         stdout

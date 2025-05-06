@@ -83,17 +83,8 @@ impl KeyHandler {
         let mut output = Vec::new();
 
         // handles typing text in insert mode
-        let mut typed_character = false;
         if layer.insert_text_on_type {
-            // I do this so when i press like backspace or space i don't write "backspace" as a
-            // word
-            match keystroke.keycode {
-                crossterm::event::KeyCode::Char(char) => {
-                    typed_character = true;
-                    output.push(Action::WriteText(char.to_string()))
-                }
-                _ => {}
-            };
+            output.push(Action::WriteText(type_text_in_insert_mode(&keystroke)));
         }
 
         self.last_keystrokes.push(keystroke);
@@ -103,11 +94,11 @@ impl KeyHandler {
             Some(shortcut_option) => match shortcut_option {
                 Some(shortcut_index) => {
                     // whole shortcut matches
-                    if typed_character {
+                    if layer.insert_text_on_type {
                         // remove the char that you have just typed
                         output.remove(output.len() - 1);
-                        output.push(self.remove_last_typed_keystrokes());
                     }
+                    output.push(self.remove_last_typed_keystrokes());
 
                     self.last_keystrokes.clear();
                     output.append(
@@ -127,11 +118,43 @@ impl KeyHandler {
     }
     pub fn remove_last_typed_keystrokes(&self) -> Action {
         // -1 because the char that you last typed is already removed
-        Action::BackspaceLetters {
-            count: self.last_keystrokes.len() - 1,
+        let mut count = 0;
+        for keystroke in &self.last_keystrokes {
+            count += get_length_of_typed_text_by_keystroke(keystroke);
         }
+        Action::BackspaceLetters { count }
     }
 }
+
+fn type_text_in_insert_mode(keystroke: &Keystroke) -> String {
+    // I do this so when i press like backspace or space i don't write "backspace" as a
+    // word
+    let mut output = match keystroke.keycode {
+        crossterm::event::KeyCode::Char(char) => char.to_string(),
+        _ => {
+            return String::new();
+        }
+    };
+
+    // handle characters that come in pairs like ""
+    match output.as_str() {
+        "\"" => output += "\"",
+        "\'" => output += "\'",
+        "<" => output += ">",
+        "(" => output += ")",
+        "{" => output += "}",
+        "[" => output += "]",
+
+        _ => {}
+    }
+
+    return output;
+}
+fn get_length_of_typed_text_by_keystroke(keystroke: &Keystroke) -> usize {
+    let text = type_text_in_insert_mode(keystroke);
+    return text.len();
+}
+
 #[derive(Clone, Debug)]
 pub struct Shortcut {
     pub keystrokes_to_activate: Vec<Keystroke>,
