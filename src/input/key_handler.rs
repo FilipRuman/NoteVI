@@ -25,7 +25,7 @@ impl KeyHandler {
         let normal_segments = KeyHandler::split_shortcuts_into_segments(&normal_shortcuts);
         let insert_segments = KeyHandler::split_shortcuts_into_segments(&insert_shortcuts);
 
-        // Logger::default_log(format!("normal_segments:{:?}", normal_segments));
+        Logger::default_log(format!("normal_segments:{:?}", normal_segments));
 
         KeyHandler {
             last_keystrokes: Vec::new(),
@@ -71,10 +71,10 @@ impl KeyHandler {
         keystroke: Keystroke,
         editor_values: &EditorValues,
     ) -> Vec<Action> {
-        // Logger::default_log(format!(
-        //     "handle_new_keystroke {:?}mode keystroke:{:?} last keystrokes:{:?}",
-        //     editor_values.mode, keystroke, self.last_keystrokes,
-        // ));
+        Logger::default_log(format!(
+            "handle_new_keystroke {:?}mode keystroke:{:?} last keystrokes:{:?}",
+            editor_values.mode, keystroke, self.last_keystrokes,
+        ));
 
         let layer = match editor_values.mode {
             EditMode::Normal => &self.normal_layer,

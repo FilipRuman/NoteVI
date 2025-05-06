@@ -4,11 +4,19 @@ mod buffer;
 mod input_handler;
 #[path = "./input/key_handler.rs"]
 mod key_handler;
+#[path = "./lexer/lexer.rs"]
+mod lexer;
+#[path = "./lexer/tokens.rs"]
+mod tokens;
 
+#[path = "./input/actions_parser.rs"]
+mod actions_parser;
 #[path = "./debugging/logger.rs"]
 mod logger;
 #[path = "./input/shortcuts.rs"]
 mod shortcuts;
+#[path = "./input/shortcuts_parser.rs"]
+mod shortcuts_parser;
 //
 // extern crate strum;
 // #[macro_use]
@@ -21,13 +29,11 @@ use crossterm::{
     event::{self, Event, read},
     terminal::{self, DisableLineWrap, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use key_handler::{KeyHandler, Keystroke, Shortcut};
+use key_handler::KeyHandler;
 use logger::Logger;
 use std::{
-    env::consts,
-    fmt::format,
     io::{Write, stdout},
-    str::FromStr,
+    path,
 };
 
 pub struct EditorValues {
@@ -72,10 +78,9 @@ fn main() {
     let mut stdout = init(&editor_values);
     logger.log("# Start key handler".to_string());
 
-    let mut key_handler = KeyHandler::new(
-        shortcuts::get_shortcuts_normal(),
-        shortcuts::get_shortcuts_input(),
-    );
+    let shortcuts_output = shortcuts_parser::parse_shortcuts_to_key_handler();
+
+    let mut key_handler = KeyHandler::new(shortcuts_output.normal, shortcuts_output.insert);
 
     logger.log("\n # start end \n".to_string());
 
@@ -102,7 +107,7 @@ fn main() {
 
     exit(stdout);
 }
-const MOVE_TO_ALTERNATIVE_SCREEN: bool = true;
+const MOVE_TO_ALTERNATIVE_SCREEN: bool = false;
 fn exit(mut stdout: std::io::Stdout) {
     if MOVE_TO_ALTERNATIVE_SCREEN {
         stdout
