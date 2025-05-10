@@ -27,11 +27,6 @@ impl Buffer {
         }
         let line_len = self.line_len(line);
 
-        // if from == 0 && to == line_len {
-        //     self.remove_line(line);
-        //     return true;
-        // }
-
         // cursor is at the beginning of a line so move whole line back
         // also if the line selected is the last one don't do it because it will delete the whole line
         if to == 0 && line != 1 {

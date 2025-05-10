@@ -36,6 +36,9 @@ use std::{
 pub struct EditorValues {
     cursor_y: usize,
     cursor_x: usize,
+    // it is needed so, when you move your cursor thru text with "holes", your cursor stays at the
+    // original x
+    desired_cursor_x: usize,
     mode: EditMode,
     quit: bool,
 }
@@ -65,6 +68,7 @@ fn main() {
     // ));
 
     let mut editor_values = EditorValues {
+        desired_cursor_x: 0,
         cursor_y: 1,
         cursor_x: 0,
         mode: EditMode::Normal,

@@ -66,7 +66,9 @@ pub fn handle_actions(
 ) {
     for action in actions {
         match action {
-            Action::MoveCursor { x, y } => move_cursor_by(x, -y, editor_values, stdout, buffer),
+            Action::MoveCursor { x, y } => {
+                move_cursor_by(true, x, -y, editor_values, stdout, buffer)
+            }
             Action::InsertText(_) => todo!(),
             Action::Quit => editor_values.quit = true,
             Action::NormalMode => {
@@ -142,7 +144,7 @@ pub fn handle_actions(
                     editor_values,
                     stdout,
                 );
-                move_cursor_by(0, 1, editor_values, stdout, buffer);
+                move_cursor_by(false, 0, 1, editor_values, stdout, buffer);
             }
         }
     }
@@ -163,7 +165,14 @@ fn remove_text(
         if move_back_a_line {
             move_cursor_up_to(previous_line_len, line - 1, editor_values, stdout);
         } else {
-            move_cursor_by(from as i32 - to as i32, 0, editor_values, stdout, buffer);
+            move_cursor_by(
+                true,
+                from as i32 - to as i32,
+                0,
+                editor_values,
+                stdout,
+                buffer,
+            );
         }
     }
     // all lines might move back so i have to redraw all lines from this  to end
@@ -178,12 +187,13 @@ fn remove_line(
 ) {
     buffer.remove_line(line);
     if move_back {
-        move_cursor_by(0, 0, editor_values, stdout, buffer);
+        move_cursor_by(true, 0, 0, editor_values, stdout, buffer);
     }
     // all lines move back so i have to redraw all lines from this  to end
     redraw_lines(line, buffer.buffer_len() + 1, buffer, editor_values, stdout);
 }
 fn move_cursor_by(
+    change_desired_x: bool,
     x: i32,
     y: i32,
     editor_values: &mut EditorValues,
@@ -196,16 +206,23 @@ fn move_cursor_by(
         i32::clamp(editor_values.cursor_y as i32 + y, 1, terminal_size.1 as i32) as usize;
 
     let text_line_size = buffer.line_len(global_y);
-
+    let target_x = if x == 0 {
+        editor_values.desired_cursor_x as i32
+    } else {
+        editor_values.cursor_x as i32 + x
+    };
     let global_x = i32::clamp(
-        editor_values.cursor_x as i32 + x,
+        target_x,
         0,
         usize::min(text_line_size, terminal_size.0 as usize) as i32,
     ) as usize;
 
     editor_values.cursor_x = global_x;
-
     editor_values.cursor_y = global_y;
+
+    if change_desired_x && x != 0 {
+        editor_values.desired_cursor_x = editor_values.cursor_x;
+    }
 
     stdout.queue(cursor::MoveTo(
         editor_values.cursor_x as u16,
@@ -247,7 +264,7 @@ fn write_text(
     redraw_line(editor_values.cursor_y, buffer, editor_values, stdout);
 
     let text_len = text.len();
-    move_cursor_by(text_len as i32, 0, editor_values, stdout, buffer);
+    move_cursor_by(true, text_len as i32, 0, editor_values, stdout, buffer);
 }
 
 fn redraw_lines(
