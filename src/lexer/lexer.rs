@@ -1,8 +1,10 @@
-use crate::tokens::*;
 use core::str;
 use std::{cmp, collections::HashMap};
 
+use super::tokens::{Token, TokenKind};
+
 struct Pattern {
+
     kind: TokenKind,
     value: Vec<String>,
     value_string: String,

@@ -1,6 +1,6 @@
 use std::{cmp::min, io::Stdout};
 
-use super::handler;
+use super::{drawing, handler};
 use crate::{EditorValues, buffer::Buffer};
 pub(super) fn write_text(
     text: String,
@@ -16,7 +16,7 @@ pub(super) fn write_text(
         editor_values.cursor_y,
         &text,
     );
-    handler::redraw_line(editor_values.cursor_y, buffer, editor_values, stdout);
+    drawing::redraw_line(editor_values.cursor_y, buffer, editor_values, stdout);
 
     let text_len = text.len();
     handler::move_cursor_by(true, text_len as i32, 0, editor_values, stdout, buffer);
@@ -47,7 +47,7 @@ pub(super) fn remove_text(
         }
     }
     // all lines might move back so i have to redraw all lines from this  to end
-    handler::redraw_lines(1, buffer.buffer_len() + 1, buffer, editor_values, stdout);
+    drawing::redraw_lines(1, buffer.buffer_len() + 1, buffer, editor_values, stdout);
 }
 fn remove_line(
     line: usize,
@@ -61,5 +61,5 @@ fn remove_line(
         handler::move_cursor_by(true, 0, 0, editor_values, stdout, buffer);
     }
     // all lines move back so i have to redraw all lines from this  to end
-    handler::redraw_lines(line, buffer.buffer_len() + 1, buffer, editor_values, stdout);
+    drawing::redraw_lines(line, buffer.buffer_len() + 1, buffer, editor_values, stdout);
 }

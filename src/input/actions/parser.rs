@@ -1,9 +1,8 @@
 use std::{default, i32, usize};
 
-use crate::{
-    action_handler::{self, Action},
-    logger::Logger,
-};
+use crate::logger::Logger;
+
+use super::action::Action;
 
 struct ActionParser {
     values: Vec<String>,

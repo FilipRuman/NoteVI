@@ -1,11 +1,16 @@
 use std::fs;
 
 use crate::{
-    actions_parser,
-    key_handler::{self, KeyHandler, Shortcut},
-    lexer::{Lexer, tokenize},
+    lexer::{
+        lexer::tokenize,
+        tokens::{Token, TokenKind},
+    },
     logger::Logger,
-    tokens::{Token, TokenKind},
+};
+
+use super::{
+    actions::{action::Action, parser},
+    key_handler::Shortcut,
 };
 
 const CONFIG_PATH: &str = "./config/keybindings.config";
@@ -72,7 +77,13 @@ pub struct ShortcutParsingOutput {
     pub insert: Vec<Shortcut>,
 }
 pub fn parse_shortcuts_to_key_handler() -> ShortcutParsingOutput {
+    if fs::exists(CONFIG_PATH).is_err() {
+        Logger::default_log("Couldn't find config file!".to_string());
+    }
+
     let content = fs::read_to_string(CONFIG_PATH).expect("Couldn't find config file!");
+
+    Logger::default_log("parse_shortcuts_to_key_handler".to_string());
     let tokens = tokenize(
         content,
         vec![
@@ -135,7 +146,7 @@ fn parse_single_shortcut(parser: &mut Parser, shortcuts: &mut Vec<Shortcut>) {
     parser.expect(&TokenKind::SemiColon);
 }
 
-fn parse_actions(parser: &mut Parser, line: u16, actions: &mut Vec<crate::action_handler::Action>) {
+fn parse_actions(parser: &mut Parser, line: u16, actions: &mut Vec<Action>) {
     while parser.current_token_kind() != &TokenKind::SemiColon {
         let name = parser.expect(&TokenKind::Identifier).value.to_owned();
         parser.expect(&TokenKind::OpenParen);
@@ -162,6 +173,7 @@ fn parse_actions(parser: &mut Parser, line: u16, actions: &mut Vec<crate::action
         }
 
         parser.expect(&TokenKind::CloseParen);
-        actions.push(actions_parser::complete_parsing_action(name, values, line));
+
+        actions.push(parser::complete_parsing_action(name, values, line));
     }
 }

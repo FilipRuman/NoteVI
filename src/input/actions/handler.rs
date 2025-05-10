@@ -12,7 +12,8 @@ use std::{
 use super::action::Action;
 use super::buffer_editing;
 use super::drawing;
-use crate::{EditMode, EditorValues, buffer::Buffer};
+use crate::{EditMode, EditorValues, buffer::Buffer, input::key_handler::KeyHandler};
+
 pub fn handle_actions(
     editor_values: &mut EditorValues,
     stdout: &mut Stdout,

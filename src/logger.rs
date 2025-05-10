@@ -3,7 +3,7 @@ use std::{
     io::Write,
 };
 
-use crate::LOGGING_PATH;
+pub const LOGGING_PATH: &str = "./logs/logs.md";
 
 pub struct Logger {
     pub file: File,

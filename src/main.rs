@@ -1,21 +1,8 @@
-mod actions;
-#[path = "./parsers/actions_parser.rs"]
-mod actions_parser;
 mod buffer;
-#[path = "./input/input_handler.rs"]
-mod input_handler;
-#[path = "./input/key_handler.rs"]
-mod key_handler;
-#[path = "./lexer/lexer.rs"]
+mod input;
 mod lexer;
 mod logger;
 mod selection_manager;
-#[path = "./input/shortcuts.rs"]
-mod shortcuts;
-#[path = "./parsers/shortcuts_parser.rs"]
-mod shortcuts_parser;
-#[path = "./lexer/tokens.rs"]
-mod tokens;
 
 use buffer::Buffer;
 use crossterm::{
@@ -23,12 +10,9 @@ use crossterm::{
     event::{self, Event, read},
     terminal::{self, DisableLineWrap, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use key_handler::KeyHandler;
-use logger::Logger;
-use std::{
-    io::{Write, stdout},
-    path,
-};
+use input::input_handler::{self, handle_key_input};
+use logger::{LOGGING_PATH, Logger};
+use std::io::{Write, stdout};
 
 pub struct EditorValues {
     cursor_y: usize,
@@ -45,7 +29,6 @@ pub enum EditMode {
     Insert,
 }
 
-pub const LOGGING_PATH: &str = "./logs/logs.md";
 fn main() {
     let mut logger = Logger::new(LOGGING_PATH.to_string());
 
@@ -75,11 +58,7 @@ fn main() {
     let mut buffer = Buffer::new();
     let mut stdout = init(&editor_values);
     logger.log("# Start key handler".to_string());
-
-    let shortcuts_output = shortcuts_parser::parse_shortcuts_to_key_handler();
-
-    let mut key_handler = KeyHandler::new(shortcuts_output.normal, shortcuts_output.insert);
-
+    let mut key_handler = input::input_handler::startup();
     logger.log("\n # start end \n".to_string());
 
     loop {
@@ -87,12 +66,11 @@ fn main() {
 
         match read().unwrap() {
             crossterm::event::Event::Key(event) => {
-                let actions =
-                    input_handler::handle_input(&mut editor_values, event, &mut key_handler);
-                actions::handler::handle_actions(
+                handle_key_input(
                     &mut editor_values,
+                    event,
+                    &mut key_handler,
                     &mut stdout,
-                    actions,
                     &mut buffer,
                 );
             }
@@ -105,7 +83,8 @@ fn main() {
 
     exit(stdout);
 }
-const MOVE_TO_ALTERNATIVE_SCREEN: bool = true;
+const MOVE_TO_ALTERNATIVE_SCREEN: bool = false;
+
 fn exit(mut stdout: std::io::Stdout) {
     if MOVE_TO_ALTERNATIVE_SCREEN {
         stdout
