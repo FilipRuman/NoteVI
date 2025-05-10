@@ -97,8 +97,8 @@ impl KeyHandler {
                     if layer.insert_text_on_type {
                         // remove the char that you have just typed
                         output.remove(output.len() - 1);
+                        self.remove_last_typed_keystrokes(&mut output);
                     }
-                    output.push(self.remove_last_typed_keystrokes());
 
                     self.last_keystrokes.clear();
                     output.append(
@@ -116,13 +116,14 @@ impl KeyHandler {
         }
         output
     }
-    pub fn remove_last_typed_keystrokes(&self) -> Action {
-        // -1 because the char that you last typed is already removed
+    fn remove_last_typed_keystrokes(&self, output: &mut Vec<Action>) {
         let mut count = 0;
         for keystroke in &self.last_keystrokes {
             count += get_length_of_typed_text_by_keystroke(keystroke);
         }
-        Action::BackspaceLetters { count }
+        if count > 0 {
+            output.push(Action::BackspaceLetters { count: count - 1 });
+        }
     }
 }
 

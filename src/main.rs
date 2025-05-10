@@ -13,6 +13,7 @@ mod tokens;
 mod actions_parser;
 #[path = "./debugging/logger.rs"]
 mod logger;
+mod selection_manager;
 #[path = "./input/shortcuts.rs"]
 mod shortcuts;
 #[path = "./input/shortcuts_parser.rs"]

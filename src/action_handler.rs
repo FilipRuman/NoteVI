@@ -39,6 +39,21 @@ pub enum Action {
     NormalMode,
     InsertMode,
     ToDo,
+    //
+    //TODO add parsing
+    // StartSelection,
+    // EndSelection,
+    // MoveToEndOfWord,
+    // MoveToBeginningOfWord,
+    //
+    // SelectLineBeforeCursor,
+    // SelectLineAfterCursor,
+    // SelectLine,
+    // SelectWord,
+    // DeleteSelected,
+    // CopySelected,
+    // PasteSelected,
+    // MoveSelected,
 }
 
 pub fn handle_actions(
@@ -91,10 +106,20 @@ pub fn handle_actions(
                         buffer,
                         true,
                     )
+                } else {
+                    remove_text(
+                        0,
+                        editor_values.cursor_x,
+                        editor_values.cursor_y,
+                        editor_values,
+                        stdout,
+                        buffer,
+                        true,
+                    )
                 }
             }
             Action::DeleteLetters { count } => {
-                if count <= buffer.get_layer_len(editor_values.cursor_y) {
+                if count <= buffer.line_len(editor_values.cursor_y) {
                     remove_text(
                         editor_values.cursor_x,
                         editor_values.cursor_x + count,
@@ -118,11 +143,31 @@ fn remove_text(
     buffer: &mut Buffer,
     move_back: bool,
 ) {
-    buffer.remove_text(line, from, to);
+    let previous_line_len = buffer.line_len(line - 1);
+    let move_back_a_line = buffer.remove_text(line, from, to);
     if move_back {
-        move_cursor_by(from as i32 - to as i32, 0, editor_values, stdout, buffer);
+        if move_back_a_line {
+            move_cursor_up_to(previous_line_len, line - 1, editor_values, stdout);
+        } else {
+            move_cursor_by(from as i32 - to as i32, 0, editor_values, stdout, buffer);
+        }
     }
-    redraw_line(line, buffer, editor_values, stdout);
+    // all lines might move back so i have to redraw all lines from this  to end
+    redraw_lines(1, buffer.buffer_len() + 1, buffer, editor_values, stdout);
+}
+fn remove_line(
+    line: usize,
+    editor_values: &mut EditorValues,
+    stdout: &mut Stdout,
+    buffer: &mut Buffer,
+    move_back: bool,
+) {
+    buffer.remove_line(line);
+    if move_back {
+        move_cursor_by(0, 0, editor_values, stdout, buffer);
+    }
+    // all lines move back so i have to redraw all lines from this  to end
+    redraw_lines(line, buffer.buffer_len() + 1, buffer, editor_values, stdout);
 }
 fn move_cursor_by(
     x: i32,
@@ -136,7 +181,7 @@ fn move_cursor_by(
     let global_y =
         i32::clamp(editor_values.cursor_y as i32 + y, 1, terminal_size.1 as i32) as usize;
 
-    let text_line_size = buffer.get_layer_len(global_y);
+    let text_line_size = buffer.line_len(global_y);
 
     let global_x = i32::clamp(
         editor_values.cursor_x as i32 + x,
@@ -145,6 +190,7 @@ fn move_cursor_by(
     ) as usize;
 
     editor_values.cursor_x = global_x;
+
     editor_values.cursor_y = global_y;
 
     stdout.queue(cursor::MoveTo(
@@ -165,6 +211,11 @@ fn move_cursor_up_to(x: usize, y: usize, editor_values: &mut EditorValues, stdou
         ))
         .expect("cursor move did not Succeed");
 }
+fn override_cursor_position(x: usize, y: usize, stdout: &mut Stdout) {
+    stdout
+        .queue(cursor::MoveTo(x as u16, y as u16 - 1))
+        .expect("cursor move did not Succeed");
+}
 fn write_text(
     text: String,
     editor_values: &mut EditorValues,
@@ -173,7 +224,7 @@ fn write_text(
 ) {
     buffer.write_text(
         min(
-            buffer.get_layer_len(editor_values.cursor_y),
+            buffer.line_len(editor_values.cursor_y),
             editor_values.cursor_x,
         ),
         editor_values.cursor_y,
@@ -184,21 +235,43 @@ fn write_text(
     let text_len = text.len();
     move_cursor_by(text_len as i32, 0, editor_values, stdout, buffer);
 }
-fn redraw_line(y: usize, buffer: &Buffer, editor_values: &mut EditorValues, stdout: &mut Stdout) {
-    let start_x = editor_values.cursor_x;
 
-    move_cursor_up_to(0, y, editor_values, stdout);
-
-    let terminal_size = size().unwrap().0 as usize;
-    let mut text_to_draw = String::with_capacity(terminal_size) + &buffer.text_layers[y];
-    let text_layer_size = text_to_draw.len();
-    if text_layer_size < terminal_size {
-        for _ in text_layer_size..terminal_size {
-            text_to_draw += " ";
+fn redraw_lines(
+    from: usize,
+    to: usize,
+    buffer: &Buffer,
+    editor_values: &mut EditorValues,
+    stdout: &mut Stdout,
+) {
+    let terminal_len = size().unwrap().0 as usize;
+    let buffer_len = buffer.buffer_len();
+    for y in from..to {
+        let mut text_to_draw = if y < buffer_len {
+            buffer.read_line(y)
+        } else {
+            ""
         }
+        .to_string();
+
+        let text_layer_size = text_to_draw.len();
+
+        if text_layer_size < terminal_len {
+            for _ in text_layer_size..terminal_len {
+                text_to_draw += " ";
+            }
+        }
+        override_cursor_position(0, y, stdout);
+        stdout.queue(style::Print(&text_to_draw)).unwrap();
     }
 
-    stdout.queue(style::Print(&text_to_draw)).unwrap();
+    move_cursor_up_to(
+        editor_values.cursor_x,
+        editor_values.cursor_y,
+        editor_values,
+        stdout,
+    );
+}
 
-    move_cursor_by(start_x as i32, 0, editor_values, stdout, buffer);
+fn redraw_line(y: usize, buffer: &Buffer, editor_values: &mut EditorValues, stdout: &mut Stdout) {
+    redraw_lines(y, y + 1, buffer, editor_values, stdout);
 }
