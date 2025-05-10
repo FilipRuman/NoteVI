@@ -1,9 +1,10 @@
 use crossterm::event::Event;
 use crossterm::event::{KeyEvent, KeyModifiers};
 
+use crate::actions::action::Action;
 use crate::{
     EditorValues,
-    action_handler::Action,
+    actions::action,
     key_handler::{KeyHandler, Keystroke},
 };
 

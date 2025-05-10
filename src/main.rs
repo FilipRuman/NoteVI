@@ -1,4 +1,6 @@
-mod action_handler;
+mod actions;
+#[path = "./parsers/actions_parser.rs"]
+mod actions_parser;
 mod buffer;
 #[path = "./input/input_handler.rs"]
 mod input_handler;
@@ -6,20 +8,15 @@ mod input_handler;
 mod key_handler;
 #[path = "./lexer/lexer.rs"]
 mod lexer;
-#[path = "./lexer/tokens.rs"]
-mod tokens;
-
-#[path = "./input/actions_parser.rs"]
-mod actions_parser;
-#[path = "./debugging/logger.rs"]
 mod logger;
 mod selection_manager;
 #[path = "./input/shortcuts.rs"]
 mod shortcuts;
-#[path = "./input/shortcuts_parser.rs"]
+#[path = "./parsers/shortcuts_parser.rs"]
 mod shortcuts_parser;
+#[path = "./lexer/tokens.rs"]
+mod tokens;
 
-use action_handler::Action;
 use buffer::Buffer;
 use crossterm::{
     ExecutableCommand, QueueableCommand, cursor,
@@ -36,8 +33,8 @@ use std::{
 pub struct EditorValues {
     cursor_y: usize,
     cursor_x: usize,
-    // it is needed so, when you move your cursor thru text with "holes", your cursor stays at the
-    // original x
+    // it is needed so, when you move your cursor thru text with "hols", your cursor stays at the
+    // original
     desired_cursor_x: usize,
     mode: EditMode,
     quit: bool,
@@ -92,7 +89,7 @@ fn main() {
             crossterm::event::Event::Key(event) => {
                 let actions =
                     input_handler::handle_input(&mut editor_values, event, &mut key_handler);
-                action_handler::handle_actions(
+                actions::handler::handle_actions(
                     &mut editor_values,
                     &mut stdout,
                     actions,

@@ -1,4 +1,3 @@
-use crate::{EditMode, EditorValues, buffer::Buffer};
 use crossterm::{
     ExecutableCommand, QueueableCommand, cursor,
     style::{self, Stylize, style},
@@ -10,54 +9,10 @@ use std::{
     u16, usize,
 };
 
-#[derive(Clone, Debug)]
-pub enum Action {
-    MoveCursor {
-        x: i32,
-        y: i32,
-    },
-    ChangeCursorPosition {
-        x: i32,
-        y: i32,
-    },
-    InsertText(String),
-    WriteText(String),
-    RemoveText {
-        from: usize,
-        to: usize,
-        line: usize,
-        move_cursor_back: bool,
-    },
-    BackspaceLetters {
-        count: usize,
-    },
-    DeleteLetters {
-        count: usize,
-    },
-
-    Quit,
-    NormalMode,
-    InsertMode,
-    ToDo,
-
-    InsertLine,
-    //
-    //TODO add parsing
-    // StartSelection,
-    // EndSelection,
-    // MoveToEndOfWord,
-    // MoveToBeginningOfWord,
-    //
-    // SelectLineBeforeCursor,
-    // SelectLineAfterCursor,
-    // SelectLine,
-    // SelectWord,
-    // DeleteSelected,
-    // CopySelected,
-    // PasteSelected,
-    // MoveSelected,
-}
-
+use super::action::Action;
+use super::buffer_editing;
+use super::drawing;
+use crate::{EditMode, EditorValues, buffer::Buffer};
 pub fn handle_actions(
     editor_values: &mut EditorValues,
     stdout: &mut Stdout,
@@ -82,13 +37,15 @@ pub fn handle_actions(
                 stdout.execute(cursor::SetCursorStyle::BlinkingBar).unwrap();
             }
             Action::ChangeCursorPosition { x: _, y: _ } => todo!(),
-            Action::WriteText(text) => write_text(text, editor_values, stdout, buffer),
+            Action::WriteText(text) => {
+                buffer_editing::write_text(text, editor_values, stdout, buffer)
+            }
             Action::RemoveText {
                 from,
                 to,
                 line,
                 move_cursor_back,
-            } => remove_text(
+            } => buffer_editing::remove_text(
                 from,
                 to,
                 line,
@@ -101,7 +58,7 @@ pub fn handle_actions(
             Action::BackspaceLetters { count } => {
                 // so i don't  subtract with overflow :D
                 if editor_values.cursor_x >= count {
-                    remove_text(
+                    buffer_editing::remove_text(
                         editor_values.cursor_x - count,
                         editor_values.cursor_x,
                         editor_values.cursor_y,
@@ -111,7 +68,7 @@ pub fn handle_actions(
                         true,
                     )
                 } else {
-                    remove_text(
+                    buffer_editing::remove_text(
                         0,
                         editor_values.cursor_x,
                         editor_values.cursor_y,
@@ -124,7 +81,7 @@ pub fn handle_actions(
             }
             Action::DeleteLetters { count } => {
                 if count <= buffer.line_len(editor_values.cursor_y) {
-                    remove_text(
+                    buffer_editing::remove_text(
                         editor_values.cursor_x,
                         editor_values.cursor_x + count,
                         editor_values.cursor_y,
@@ -137,7 +94,7 @@ pub fn handle_actions(
             }
             Action::InsertLine => {
                 buffer.insert_line(editor_values.cursor_y);
-                redraw_lines(
+                drawing::redraw_lines(
                     editor_values.cursor_y,
                     buffer.buffer_len(),
                     buffer,
@@ -150,49 +107,7 @@ pub fn handle_actions(
     }
 }
 
-fn remove_text(
-    from: usize,
-    to: usize,
-    line: usize,
-    editor_values: &mut EditorValues,
-    stdout: &mut Stdout,
-    buffer: &mut Buffer,
-    move_back: bool,
-) {
-    let previous_line_len = buffer.line_len(line - 1);
-    let move_back_a_line = buffer.remove_text(line, from, to);
-    if move_back {
-        if move_back_a_line {
-            move_cursor_up_to(previous_line_len, line - 1, editor_values, stdout);
-        } else {
-            move_cursor_by(
-                true,
-                from as i32 - to as i32,
-                0,
-                editor_values,
-                stdout,
-                buffer,
-            );
-        }
-    }
-    // all lines might move back so i have to redraw all lines from this  to end
-    redraw_lines(1, buffer.buffer_len() + 1, buffer, editor_values, stdout);
-}
-fn remove_line(
-    line: usize,
-    editor_values: &mut EditorValues,
-    stdout: &mut Stdout,
-    buffer: &mut Buffer,
-    move_back: bool,
-) {
-    buffer.remove_line(line);
-    if move_back {
-        move_cursor_by(true, 0, 0, editor_values, stdout, buffer);
-    }
-    // all lines move back so i have to redraw all lines from this  to end
-    redraw_lines(line, buffer.buffer_len() + 1, buffer, editor_values, stdout);
-}
-fn move_cursor_by(
+pub(super) fn move_cursor_by(
     change_desired_x: bool,
     x: i32,
     y: i32,
@@ -229,7 +144,12 @@ fn move_cursor_by(
         editor_values.cursor_y as u16 - 1,
     ));
 }
-fn move_cursor_up_to(x: usize, y: usize, editor_values: &mut EditorValues, stdout: &mut Stdout) {
+pub(super) fn move_cursor_up_to(
+    x: usize,
+    y: usize,
+    editor_values: &mut EditorValues,
+    stdout: &mut Stdout,
+) {
     let size = size().unwrap();
 
     editor_values.cursor_x = usize::clamp(x, 0, size.0 as usize);
@@ -242,67 +162,8 @@ fn move_cursor_up_to(x: usize, y: usize, editor_values: &mut EditorValues, stdou
         ))
         .expect("cursor move did not Succeed");
 }
-fn override_cursor_position(x: usize, y: usize, stdout: &mut Stdout) {
+pub(super) fn override_cursor_position(x: usize, y: usize, stdout: &mut Stdout) {
     stdout
         .queue(cursor::MoveTo(x as u16, y as u16 - 1))
         .expect("cursor move did not Succeed");
-}
-fn write_text(
-    text: String,
-    editor_values: &mut EditorValues,
-    stdout: &mut Stdout,
-    buffer: &mut Buffer,
-) {
-    buffer.write_text(
-        min(
-            buffer.line_len(editor_values.cursor_y),
-            editor_values.cursor_x,
-        ),
-        editor_values.cursor_y,
-        &text,
-    );
-    redraw_line(editor_values.cursor_y, buffer, editor_values, stdout);
-
-    let text_len = text.len();
-    move_cursor_by(true, text_len as i32, 0, editor_values, stdout, buffer);
-}
-
-fn redraw_lines(
-    from: usize,
-    to: usize,
-    buffer: &Buffer,
-    editor_values: &mut EditorValues,
-    stdout: &mut Stdout,
-) {
-    let terminal_len = size().unwrap().0 as usize;
-    let buffer_len = buffer.buffer_len();
-    for y in from..to {
-        let mut text_to_draw = if y < buffer_len {
-            buffer.read_line(y)
-        } else {
-            ""
-        }
-        .to_string();
-
-        let text_layer_size = text_to_draw.len();
-
-        if text_layer_size < terminal_len {
-            for _ in text_layer_size..terminal_len {
-                text_to_draw += " ";
-            }
-        }
-        override_cursor_position(0, y, stdout);
-        stdout.queue(style::Print(&text_to_draw)).unwrap();
-    }
-
-    move_cursor_up_to(
-        editor_values.cursor_x,
-        editor_values.cursor_y,
-        editor_values,
-        stdout,
-    );
-}
-
-fn redraw_line(y: usize, buffer: &Buffer, editor_values: &mut EditorValues, stdout: &mut Stdout) {
-    redraw_lines(y, y + 1, buffer, editor_values, stdout);
 }

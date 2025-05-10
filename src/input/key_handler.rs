@@ -2,7 +2,7 @@ use std::{char, collections::HashMap, fmt::format, ops::ControlFlow, process::Ou
 
 use crossterm::event::KeyCode;
 
-use crate::{EditMode, EditorValues, action_handler::Action, logger::Logger};
+use crate::{EditMode, EditorValues, actions::action::Action, logger::Logger};
 
 pub struct Layer {
     pub shortcuts: Vec<Shortcut>,

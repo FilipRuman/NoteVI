@@ -1,5 +1,5 @@
 use crate::{
-    action_handler::Action,
+    actions::action::Action,
     key_handler::{Keystroke, Shortcut},
 };
 
