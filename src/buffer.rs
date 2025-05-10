@@ -22,11 +22,15 @@ impl Buffer {
     }
     // returns if has to move back a line
     pub fn remove_text(&mut self, line: usize, from: usize, to: usize) -> bool {
-        let line_len = self.line_len(line);
-        if from == 0 && to == line_len {
-            self.remove_line(line);
+        if line >= self.buffer_len() {
             return true;
         }
+        let line_len = self.line_len(line);
+
+        // if from == 0 && to == line_len {
+        //     self.remove_line(line);
+        //     return true;
+        // }
 
         // cursor is at the beginning of a line so move whole line back
         // also if the line selected is the last one don't do it because it will delete the whole line
@@ -57,6 +61,10 @@ impl Buffer {
             self.text_lines.remove(line);
         }
     }
+    pub fn insert_line(&mut self, line: usize) {
+        self.text_lines.insert(line, String::new());
+    }
+
     pub fn line_len(&self, y: usize) -> usize {
         if self.text_lines.len() > y {
             return self.text_lines[y].len();

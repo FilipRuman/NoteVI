@@ -28,6 +28,7 @@ pub fn complete_parsing_action(name: String, values: Vec<String>, line: u16) -> 
             y: get_value_i32(1, &action_parser),
         },
 
+        "InsertLine" => Action::InsertLine,
         "InsertText" => Action::InsertText(safe_aces_value(0, &action_parser)),
         "WriteText" => Action::WriteText(safe_aces_value(0, &action_parser)),
         "RemoveText" => Action::RemoveText {

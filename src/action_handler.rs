@@ -39,6 +39,8 @@ pub enum Action {
     NormalMode,
     InsertMode,
     ToDo,
+
+    InsertLine,
     //
     //TODO add parsing
     // StartSelection,
@@ -131,9 +133,21 @@ pub fn handle_actions(
                     )
                 }
             }
+            Action::InsertLine => {
+                buffer.insert_line(editor_values.cursor_y);
+                redraw_lines(
+                    editor_values.cursor_y,
+                    buffer.buffer_len(),
+                    buffer,
+                    editor_values,
+                    stdout,
+                );
+                move_cursor_by(0, 1, editor_values, stdout, buffer);
+            }
         }
     }
 }
+
 fn remove_text(
     from: usize,
     to: usize,
