@@ -45,8 +45,8 @@ impl Buffer {
 
         // so there are no weird things happening
         x = x.clamp(1, self.line_len_min_1(y) - 1) - 1;
-
         y = y.clamp(1, (self.buffer_len_min_1() - 1).max(1));
+
         let mut encountered_non_spacers = false;
         let mut current_line_bytes = self.read_line(y).as_bytes();
         let mut current_line_len = self.line_len(y);
@@ -113,8 +113,8 @@ impl Buffer {
         mut y: usize,
         symbols_are_brakes: bool,
     ) -> (usize, usize) {
-        // so there are no weird things happening
         x += 1;
+        // so there are no weird things happening
         x = x.clamp(0, self.line_len_min_1(y) - 1);
         y = y.clamp(1, (self.buffer_len_min_1() - 1).max(1));
         let mut encountered_non_spacers = false;
@@ -122,6 +122,8 @@ impl Buffer {
         let mut current_line_bytes = self.read_line(y).as_bytes();
         let mut current_line_len = self.line_len(y);
         let mut current_line_len_min_1 = self.line_len_min_1(y);
+        // if I start in a symbols block i want to use symbols as characters not brakes to go to
+        // the end/start of that block
         let use_symbols_as_characters =
             current_line_len != 0 && self.symbol_char.contains(&(current_line_bytes[x] as char));
         loop {
