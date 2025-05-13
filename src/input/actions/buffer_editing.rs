@@ -49,7 +49,7 @@ pub(super) fn remove_text(
     // all lines might move back so i have to redraw all lines from this  to end
     drawing::redraw_lines(1, buffer.buffer_len() + 1, buffer, editor_values, stdout);
 }
-fn remove_line(
+pub(super) fn remove_line(
     line: usize,
     editor_values: &mut EditorValues,
     stdout: &mut Stdout,

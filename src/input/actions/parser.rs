@@ -26,8 +26,14 @@ pub fn complete_parsing_action(name: String, values: Vec<String>, line: u16) -> 
             x: get_value_i32(0, &action_parser),
             y: get_value_i32(1, &action_parser),
         },
-
+        "GoToStartOfWord" => Action::GoToStartOfWord {
+            characters_are_brakes: get_value_bool(0, &action_parser),
+        },
+        "GoToEndOfWord" => Action::GoToEndOfWord {
+            characters_are_brakes: get_value_bool(0, &action_parser),
+        },
         "InsertLine" => Action::InsertLine,
+        "DeleteCurrentLine" => Action::DeleteCurrentLine,
         "InsertText" => Action::InsertText(safe_aces_value(0, &action_parser)),
         "WriteText" => Action::WriteText(safe_aces_value(0, &action_parser)),
         "RemoveText" => Action::RemoveText {

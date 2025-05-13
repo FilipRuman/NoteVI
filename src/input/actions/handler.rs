@@ -1,5 +1,6 @@
 use crossterm::{
-    ExecutableCommand, QueueableCommand, cursor,
+    ExecutableCommand, QueueableCommand,
+    cursor::{self, MoveUp},
     style::{self, Stylize, style},
     terminal::size,
 };
@@ -103,6 +104,35 @@ pub fn handle_actions(
                     stdout,
                 );
                 move_cursor_by(false, 0, 1, editor_values, stdout, buffer);
+            }
+            Action::DeleteCurrentLine => {
+                buffer_editing::remove_line(
+                    editor_values.cursor_y,
+                    editor_values,
+                    stdout,
+                    buffer,
+                    true,
+                );
+            }
+            Action::GoToEndOfWord {
+                characters_are_brakes,
+            } => {
+                let end_of_word = buffer.get_word_end(
+                    editor_values.cursor_x,
+                    editor_values.cursor_y,
+                    characters_are_brakes,
+                );
+                move_cursor_up_to(end_of_word.0, end_of_word.1, editor_values, stdout);
+            }
+            Action::GoToStartOfWord {
+                characters_are_brakes,
+            } => {
+                let start_of_word = buffer.get_word_start(
+                    editor_values.cursor_x,
+                    editor_values.cursor_y,
+                    characters_are_brakes,
+                );
+                move_cursor_up_to(start_of_word.0, start_of_word.1, editor_values, stdout);
             }
         }
     }

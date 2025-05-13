@@ -1,12 +1,25 @@
-use std::usize;
+use std::{collections::HashSet, usize};
 
 pub struct Buffer {
     text_lines: Vec<String>,
+    pub(super) brake_char: HashSet<char>,
+    pub(super) spacers: HashSet<char>,
+
+    pub(super) symbol_char: HashSet<char>,
 }
 impl Buffer {
     pub fn new() -> Buffer {
         Buffer {
             text_lines: Vec::new(),
+            brake_char: HashSet::from([
+                ' ', '\n', '.', ':', '(', ')', '+', '=', '-', ';', '!', '@', '#', '$', '%', '^',
+                '&', '*', '{', '}', ']', '[', ']', '\\', '\"', '/',
+            ]),
+            spacers: HashSet::from([' ', '\n']),
+            symbol_char: HashSet::from([
+                '.', ':', '(', ')', '+', '=', '-', ';', '!', '@', '#', '$', '%', '^', '&', '*',
+                '{', '}', ']', '[', ']', '\\', '\"', '/',
+            ]),
         }
     }
     pub fn write_text(&mut self, x: usize, y: usize, text: &String) {
@@ -66,7 +79,13 @@ impl Buffer {
         }
         0
     }
+    pub fn line_len_min_1(&self, y: usize) -> usize {
+        self.line_len(y).max(1)
+    }
     pub fn buffer_len(&self) -> usize {
         self.text_lines.len()
+    }
+    pub fn buffer_len_min_1(&self) -> usize {
+        self.text_lines.len().max(1)
     }
 }

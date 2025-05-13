@@ -1,4 +1,5 @@
 mod buffer;
+mod buffer_parser;
 mod input;
 mod lexer;
 mod logger;
@@ -37,7 +38,6 @@ fn main() {
     //     Shortcut::new_parse_keystrokes("_c", [Action::NormalMode].to_vec())
     // ));
     logger.log("\n\n# ------------    init    ------------\n\n".to_string());
-
     // logger.log(format!(
     //     "## test shortcut parse 1.: {:?}",
     //     Shortcut::new_parse_keystrokes("IoWo_DD", [Action::ToDo].to_vec())
@@ -83,7 +83,7 @@ fn main() {
 
     exit(stdout);
 }
-const MOVE_TO_ALTERNATIVE_SCREEN: bool = false;
+const MOVE_TO_ALTERNATIVE_SCREEN: bool = true;
 
 fn exit(mut stdout: std::io::Stdout) {
     if MOVE_TO_ALTERNATIVE_SCREEN {

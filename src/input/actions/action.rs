@@ -29,7 +29,13 @@ pub enum Action {
     ToDo,
 
     InsertLine,
-    //
+    DeleteCurrentLine,
+    GoToEndOfWord {
+        characters_are_brakes: bool,
+    },
+    GoToStartOfWord {
+        characters_are_brakes: bool,
+    },
     //TODO add parsing
     // StartSelection,
     // EndSelection,
