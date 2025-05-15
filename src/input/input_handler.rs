@@ -6,6 +6,7 @@ use crossterm::event::{KeyEvent, KeyModifiers};
 use crate::EditorValues;
 use crate::buffer::Buffer;
 use crate::logger::Logger;
+use crate::selection_manager::SelectionManager;
 
 use super::actions::action::Action;
 use super::actions::handler::handle_actions;
@@ -24,6 +25,7 @@ pub fn handle_key_input(
     key_handler: &mut KeyHandler,
     stdout: &mut Stdout,
     buffer: &mut Buffer,
+    selection_manager: &mut SelectionManager,
 ) {
     let mut ctrl = false;
     for modifier in event.modifiers.iter() {
@@ -39,5 +41,5 @@ pub fn handle_key_input(
     };
 
     let actions = key_handler.handle_new_keystroke(key_stroke, &editor_values);
-    handle_actions(editor_values, stdout, actions, buffer);
+    handle_actions(editor_values, stdout, actions, buffer, selection_manager);
 }

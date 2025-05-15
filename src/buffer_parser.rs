@@ -29,7 +29,63 @@ impl Buffer {
     pub fn is_symbol(&self, char: char) -> bool {
         return self.symbol_char.contains(&char);
     }
-    pub fn get_word_start(
+    pub fn get_current_word_dimensions(
+        &self,
+        mut x: usize,
+        mut y: usize,
+        symbols_are_brakes: bool,
+    ) -> (usize, usize) {
+        // so there are no weird things happening
+        x = x.clamp(1, self.line_len_min_1(y) - 1);
+        y = y.clamp(1, (self.buffer_len_min_1() - 1).max(1));
+
+        let current_line_bytes = self.read_line(y).as_bytes();
+        let current_line_len = self.line_len(y);
+
+        // if I start in a symbols block i want to use symbols as characters not brakes to go to
+        // the end/start of that block
+        let use_symbols_as_characters =
+            current_line_len != 0 && self.symbol_char.contains(&(current_line_bytes[x] as char));
+
+        //start
+        let start;
+        let mut current_x = x;
+        loop {
+            if current_x == 0
+                || self.is_brake(
+                    current_line_bytes[current_x - 1] as char,
+                    symbols_are_brakes,
+                    use_symbols_as_characters,
+                )
+            {
+                start = current_x;
+                break;
+            }
+            current_x -= 1;
+        }
+
+        // end
+
+        let end;
+        let current_line_len_min_1 = self.line_len_min_1(y);
+        current_x = x;
+        loop {
+            if current_x >= current_line_len_min_1
+                || self.is_brake(
+                    current_line_bytes[current_x] as char,
+                    symbols_are_brakes,
+                    use_symbols_as_characters,
+                )
+            {
+                end = current_x;
+                break;
+            }
+            current_x += 1;
+        }
+
+        (start, end)
+    }
+    pub fn get_next_word_start(
         &self,
         mut x: usize,
         mut y: usize,
@@ -107,7 +163,7 @@ impl Buffer {
             }
         }
     }
-    pub fn get_word_end(
+    pub fn get_next_word_end(
         &self,
         mut x: usize,
         mut y: usize,

@@ -1,5 +1,7 @@
 use std::{collections::HashSet, usize};
 
+use crate::logger::Logger;
+
 pub struct Buffer {
     text_lines: Vec<String>,
     pub(super) brake_char: HashSet<char>,
@@ -42,20 +44,29 @@ impl Buffer {
 
         // cursor is at the beginning of a line so move whole line back
         // also if the line selected is the last one don't do it because it will delete the whole line
+        Logger::default_log(format!("remove_text: line {} ", line));
         if to == 0 && line != 1 {
             let current_line_text = &(self.text_lines[line].to_owned());
             self.text_lines[line - 1] += current_line_text;
+
+            Logger::default_log(format!("remove_text:  remove_line"));
             self.remove_line(line);
             return true;
         }
         if from >= to || to > line_len {
+            Logger::default_log(format!(
+                "remove_text: out of the line bounds from:{} to:{} line_len:{}",
+                from, to, line_len
+            ));
             return false;
         }
         let split_output = self.text_lines[line].split_at(from);
         let mut output_text = split_output.0.to_string();
         output_text += split_output.1.split_at(to - from).1;
 
+        Logger::default_log(format!("remove_text: output {}", &output_text));
         self.text_lines[line] = output_text;
+
         false
     }
     pub fn read_line(&self, line: usize) -> &String {

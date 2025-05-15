@@ -18,6 +18,14 @@ pub fn complete_parsing_action(name: String, values: Vec<String>, line: u16) -> 
     };
 
     match name.as_str() {
+        "SelectCurrentLine" => Action::SelectCurrentLine,
+        "DebugSelection" => Action::DebugSelection,
+
+        "SelectCurrentWords" => Action::SelectCurrentWords {
+            characters_are_brakes: get_value_bool(0, &action_parser),
+        },
+        "DeleteSelection" => Action::DeleteSelection,
+
         "MoveCursor" => Action::MoveCursor {
             x: get_value_i32(0, &action_parser),
             y: get_value_i32(1, &action_parser),

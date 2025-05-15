@@ -13,6 +13,7 @@ use crossterm::{
 };
 use input::input_handler::{self, handle_key_input};
 use logger::{LOGGING_PATH, Logger};
+use selection_manager::SelectionManager;
 use std::io::{Write, stdout};
 
 pub struct EditorValues {
@@ -46,7 +47,12 @@ fn main() {
     //     "## test shortcut parse 2.: {:?}",
     //     Shortcut::new_parse_keystrokes("_I_DD", [Action::InsertMode].to_vec())
     // ));
-
+    let mut selection_manager = SelectionManager {
+        from_y: 0,
+        to_x: 0,
+        from_x: 0,
+        to_y: 0,
+    };
     let mut editor_values = EditorValues {
         desired_cursor_x: 0,
         cursor_y: 1,
@@ -72,6 +78,7 @@ fn main() {
                     &mut key_handler,
                     &mut stdout,
                     &mut buffer,
+                    &mut selection_manager,
                 );
             }
             _ => {}

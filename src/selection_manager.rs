@@ -1,4 +1,7 @@
-use crate::buffer::Buffer;
+use crate::{
+    buffer::{self, Buffer},
+    logger::Logger,
+};
 
 pub struct SelectionManager {
     pub from_x: usize,
@@ -7,7 +10,35 @@ pub struct SelectionManager {
     pub to_y: usize,
 }
 impl SelectionManager {
+    pub fn select_word(
+        &mut self,
+        buffer: &mut Buffer,
+        x: usize,
+        y: usize,
+        symbols_are_brakes: bool,
+    ) {
+        let dimensions = buffer.get_current_word_dimensions(x, y, symbols_are_brakes);
+        let start = dimensions.0;
+        let end = dimensions.1;
+        self.set_line_selections_on_one_line(start, end, y);
+        Logger::default_log(format!(
+            "select_word: self.from_x,{} self.to_x,{} self.from_y,{} self.to_y{}",
+            self.from_x, self.to_x, self.from_y, self.to_y,
+        ));
+    }
+    pub fn select_line(&mut self, buffer: &mut Buffer, y: usize) {
+        self.set_line_selections_on_one_line(0, buffer.line_len_min_1(y) - 1, y)
+    }
+    pub fn set_line_selections_on_one_line(&mut self, from: usize, to: usize, line: usize) {
+        self.from_x = from;
+        self.from_y = line;
+
+        self.to_x = to;
+        self.to_y = line;
+    }
     pub fn delete_selection(&mut self, buffer: &mut Buffer) {
+        Logger::default_log(format!("delete_selection"));
+
         if self.from_y == self.to_y {
             buffer.remove_text(self.from_y, self.from_x, self.to_x);
 

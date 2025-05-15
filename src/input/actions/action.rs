@@ -36,18 +36,19 @@ pub enum Action {
     GoToStartOfWord {
         characters_are_brakes: bool,
     },
-    //TODO add parsing
-    // StartSelection,
-    // EndSelection,
-    // MoveToEndOfWord,
-    // MoveToBeginningOfWord,
-    //
-    // SelectLineBeforeCursor,
-    // SelectLineAfterCursor,
-    // SelectLine,
-    // SelectWord,
-    // DeleteSelected,
-    // CopySelected,
-    // PasteSelected,
-    // MoveSelected,
+
+    SelectCurrentLine,
+    SelectCurrentWords {
+        characters_are_brakes: bool,
+    },
+    DeleteSelection,
+    DebugSelection, //TODO add parsing
+                    // StartSelection,
+                    // EndSelection,
+                    //
+                    // SelectLineBeforeCursor,
+                    // SelectLineAfterCursor,
+                    // CopySelected,
+                    // PasteSelected,
+                    // MoveSelected,
 }

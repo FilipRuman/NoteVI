@@ -10,16 +10,20 @@ use std::{
     u16, usize,
 };
 
-use super::action::Action;
 use super::buffer_editing;
 use super::drawing;
-use crate::{EditMode, EditorValues, buffer::Buffer, input::key_handler::KeyHandler};
+use super::{action::Action, drawing::redraw_lines};
+use crate::{
+    EditMode, EditorValues, buffer::Buffer, input::key_handler::KeyHandler,
+    selection_manager::SelectionManager,
+};
 
 pub fn handle_actions(
     editor_values: &mut EditorValues,
     stdout: &mut Stdout,
     actions: Vec<Action>,
     buffer: &mut Buffer,
+    selection_manager: &mut SelectionManager,
 ) {
     for action in actions {
         match action {
@@ -117,7 +121,7 @@ pub fn handle_actions(
             Action::GoToEndOfWord {
                 characters_are_brakes,
             } => {
-                let end_of_word = buffer.get_word_end(
+                let end_of_word = buffer.get_next_word_end(
                     editor_values.cursor_x,
                     editor_values.cursor_y,
                     characters_are_brakes,
@@ -127,12 +131,57 @@ pub fn handle_actions(
             Action::GoToStartOfWord {
                 characters_are_brakes,
             } => {
-                let start_of_word = buffer.get_word_start(
+                let start_of_word = buffer.get_next_word_start(
                     editor_values.cursor_x,
                     editor_values.cursor_y,
                     characters_are_brakes,
                 );
                 move_cursor_up_to(start_of_word.0, start_of_word.1, editor_values, stdout);
+            }
+            Action::SelectCurrentLine => {
+                selection_manager.select_line(buffer, editor_values.cursor_y)
+            }
+            Action::SelectCurrentWords {
+                characters_are_brakes,
+            } => {
+                selection_manager.select_word(
+                    buffer,
+                    editor_values.cursor_x,
+                    editor_values.cursor_y,
+                    characters_are_brakes,
+                );
+                // move cursor to  a begging of selected word
+                move_cursor_up_to(
+                    selection_manager.from_x,
+                    editor_values.cursor_y,
+                    editor_values,
+                    stdout,
+                );
+            }
+            Action::DeleteSelection => {
+                let redraw_start_line = selection_manager.from_y;
+                selection_manager.delete_selection(buffer);
+                redraw_lines(
+                    redraw_start_line,
+                    buffer.buffer_len() + 1,
+                    buffer,
+                    editor_values,
+                    stdout,
+                );
+            }
+            Action::DebugSelection => {
+                stdout.queue(cursor::MoveTo(
+                    selection_manager.from_x as u16,
+                    selection_manager.from_y as u16 - 1,
+                ));
+
+                stdout.queue(style::Print("→")).unwrap();
+                stdout.queue(cursor::MoveTo(
+                    selection_manager.to_x as u16,
+                    selection_manager.to_y as u16 - 1,
+                ));
+
+                stdout.queue(style::Print("←")).unwrap();
             }
         }
     }
