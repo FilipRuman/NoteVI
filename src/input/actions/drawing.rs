@@ -44,6 +44,14 @@ pub(super) fn redraw_lines(
     );
 }
 
+pub(super) fn redraw_whole_document_from(
+    from: usize,
+    buffer: &Buffer,
+    editor_values: &mut EditorValues,
+    stdout: &mut Stdout,
+) {
+    redraw_lines(from, buffer.buffer_len() + 1, buffer, editor_values, stdout);
+}
 pub(super) fn redraw_line(
     y: usize,
     buffer: &Buffer,

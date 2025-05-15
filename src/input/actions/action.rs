@@ -42,13 +42,16 @@ pub enum Action {
         characters_are_brakes: bool,
     },
     DeleteSelection,
-    DebugSelection, //TODO add parsing
-                    // StartSelection,
-                    // EndSelection,
-                    //
-                    // SelectLineBeforeCursor,
-                    // SelectLineAfterCursor,
-                    // CopySelected,
-                    // PasteSelected,
-                    // MoveSelected,
+    DebugSelection,
+
+    CopySelected,
+    PasteFromClipboard,
+    //TODO add parsing
+    // StartSelection,
+    // EndSelection,
+    //
+    // SelectLineBeforeCursor,
+    // SelectLineAfterCursor,
+
+    // MoveSelected,
 }

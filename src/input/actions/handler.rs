@@ -10,11 +10,14 @@ use std::{
     u16, usize,
 };
 
-use super::buffer_editing;
 use super::drawing;
 use super::{action::Action, drawing::redraw_lines};
+use super::{buffer_editing, drawing::redraw_whole_document_from};
 use crate::{
-    EditMode, EditorValues, buffer::Buffer, input::key_handler::KeyHandler,
+    EditMode, EditorValues,
+    buffer::Buffer,
+    clipboard::{self, Clipboard},
+    input::key_handler::KeyHandler,
     selection_manager::SelectionManager,
 };
 
@@ -24,6 +27,7 @@ pub fn handle_actions(
     actions: Vec<Action>,
     buffer: &mut Buffer,
     selection_manager: &mut SelectionManager,
+    clipboard: &mut Clipboard,
 ) {
     for action in actions {
         match action {
@@ -127,6 +131,8 @@ pub fn handle_actions(
                     characters_are_brakes,
                 );
                 move_cursor_up_to(end_of_word.0, end_of_word.1, editor_values, stdout);
+
+                editor_values.desired_cursor_x = editor_values.cursor_x;
             }
             Action::GoToStartOfWord {
                 characters_are_brakes,
@@ -137,6 +143,8 @@ pub fn handle_actions(
                     characters_are_brakes,
                 );
                 move_cursor_up_to(start_of_word.0, start_of_word.1, editor_values, stdout);
+
+                editor_values.desired_cursor_x = editor_values.cursor_x;
             }
             Action::SelectCurrentLine => {
                 selection_manager.select_line(buffer, editor_values.cursor_y)
@@ -161,13 +169,7 @@ pub fn handle_actions(
             Action::DeleteSelection => {
                 let redraw_start_line = selection_manager.from_y;
                 selection_manager.delete_selection(buffer);
-                redraw_lines(
-                    redraw_start_line,
-                    buffer.buffer_len() + 1,
-                    buffer,
-                    editor_values,
-                    stdout,
-                );
+                redraw_whole_document_from(redraw_start_line, buffer, editor_values, stdout);
             }
             Action::DebugSelection => {
                 stdout.queue(cursor::MoveTo(
@@ -182,6 +184,17 @@ pub fn handle_actions(
                 ));
 
                 stdout.queue(style::Print("←")).unwrap();
+            }
+            Action::CopySelected => clipboard.copy(
+                selection_manager.from_x,
+                selection_manager.from_y,
+                selection_manager.to_x,
+                selection_manager.to_y,
+                buffer,
+            ),
+            Action::PasteFromClipboard => {
+                clipboard.paste(editor_values.cursor_x, editor_values.cursor_y, buffer);
+                redraw_whole_document_from(editor_values.cursor_y, buffer, editor_values, stdout);
             }
         }
     }

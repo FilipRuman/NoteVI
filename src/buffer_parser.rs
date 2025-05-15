@@ -41,6 +41,7 @@ impl Buffer {
 
         let current_line_bytes = self.read_line(y).as_bytes();
         let current_line_len = self.line_len(y);
+        let current_line_len_min_1 = self.line_len_min_1(y);
 
         // if I start in a symbols block i want to use symbols as characters not brakes to go to
         // the end/start of that block
@@ -65,9 +66,7 @@ impl Buffer {
         }
 
         // end
-
         let end;
-        let current_line_len_min_1 = self.line_len_min_1(y);
         current_x = x;
         loop {
             if current_x >= current_line_len_min_1

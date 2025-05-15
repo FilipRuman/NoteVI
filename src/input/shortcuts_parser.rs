@@ -13,7 +13,7 @@ use super::{
     key_handler::Shortcut,
 };
 
-const CONFIG_PATH: &str = "./config/keybindings.config";
+const CONFIG_PATH: &str = "./keybindings.json";
 
 pub struct Parser {
     pub index: usize,

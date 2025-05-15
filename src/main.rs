@@ -1,11 +1,13 @@
 mod buffer;
 mod buffer_parser;
+mod clipboard;
 mod input;
 mod lexer;
 mod logger;
 mod selection_manager;
 
 use buffer::Buffer;
+use clipboard::Clipboard;
 use crossterm::{
     ExecutableCommand, QueueableCommand, cursor,
     event::{self, Event, read},
@@ -60,6 +62,7 @@ fn main() {
         mode: EditMode::Normal,
         quit: false,
     };
+    let mut clipboard = Clipboard { save: Vec::new() };
 
     let mut buffer = Buffer::new();
     let mut stdout = init(&editor_values);
@@ -79,6 +82,7 @@ fn main() {
                     &mut stdout,
                     &mut buffer,
                     &mut selection_manager,
+                    &mut clipboard,
                 );
             }
             _ => {}

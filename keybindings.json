@@ -22,6 +22,9 @@ normal{
 
 	"tw": WriteText(Test);
         "ts": DebugSelection();
+	"yy":SelectCurrentLine() CopySelected(); 
+	"p":PasteFromClipboard(); 
+
 }
 
 
@@ -31,5 +34,4 @@ insert{
 	"<Backspace>": BackspaceLetters(1);
 	"<Delete>": DeleteLetters(1);
         "<Enter>": InsertLine();
-
 }

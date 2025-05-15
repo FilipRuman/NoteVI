@@ -30,7 +30,15 @@ impl Buffer {
         }
         self.text_lines[y].insert_str(x, text);
     }
-    fn add_text_layers_up_to(&mut self, y: usize) {
+    pub fn override_line(&mut self, y: usize, text: String) {
+        //maybe add safety checks
+        //if self.text_lines.len() <= y {
+        //             self.add_text_layers_up_to(y);
+        //         }
+
+        self.text_lines[y] = text;
+    }
+    pub fn add_text_layers_up_to(&mut self, y: usize) {
         for _ in 0..(y + 1 - self.text_lines.len()) {
             self.text_lines.push("".to_string());
         }
@@ -72,6 +80,9 @@ impl Buffer {
     pub fn read_line(&self, line: usize) -> &String {
         &self.text_lines[line]
     }
+    pub fn read_lines(&self, from: usize, to: usize) -> &[String] {
+        &self.text_lines[from..to]
+    }
     pub fn remove_line(&mut self, line: usize) {
         self.text_lines.remove(line);
     }
@@ -83,7 +94,15 @@ impl Buffer {
     pub fn insert_line(&mut self, line: usize) {
         self.text_lines.insert(line, String::new());
     }
-
+    pub fn insert_lines_of_text(&mut self, from: usize, text_lines: Vec<String>) {
+        // idk how to make this more efficient
+        for i in 0..text_lines.len() {
+            self.text_lines.insert(from + i, text_lines[i].to_string());
+        }
+    }
+    pub fn insert_line_of_text(&mut self, y: usize, value: String) {
+        self.text_lines.insert(y, value);
+    }
     pub fn line_len(&self, y: usize) -> usize {
         if self.text_lines.len() > y {
             return self.text_lines[y].len();
