@@ -29,7 +29,9 @@ pub enum Action {
     ToDo,
 
     InsertLine,
-    DeleteCurrentLine,
+    DeleteCurrentLine {
+        move_to_clipboard: bool,
+    },
     GoToEndOfWord {
         characters_are_brakes: bool,
     },
@@ -41,7 +43,9 @@ pub enum Action {
     SelectCurrentWords {
         characters_are_brakes: bool,
     },
-    DeleteSelection,
+    DeleteSelection {
+        move_to_clipboard: bool,
+    },
     DebugSelection,
 
     CopySelected,

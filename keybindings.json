@@ -4,9 +4,13 @@ normal{
 	"q": Quit();
 	"_c": ToDo();
 	"_v": ToDo();
-	"dd": DeleteCurrentLine();
-	"daw": SelectCurrentWords(true) DeleteSelection();
-	"daW": SelectCurrentWords(false) DeleteSelection();
+
+	" dd": DeleteCurrentLine(false);
+	"dd": DeleteCurrentLine(true);
+	" daw": SelectCurrentWords(true) DeleteSelection(false);
+	" daW": SelectCurrentWords(false) DeleteSelection(false);
+	"daw": SelectCurrentWords(true) DeleteSelection(true);
+	"daW": SelectCurrentWords(false) DeleteSelection(true);
 	"saw": SelectCurrentWords(true);
 	"saW": SelectCurrentWords(false);
 	"i": InsertMode();

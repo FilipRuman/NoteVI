@@ -113,14 +113,17 @@ pub fn handle_actions(
                 );
                 move_cursor_by(false, 0, 1, editor_values, stdout, buffer);
             }
-            Action::DeleteCurrentLine => {
-                buffer_editing::remove_line(
+            Action::DeleteCurrentLine { move_to_clipboard } => {
+                let line = buffer_editing::remove_line(
                     editor_values.cursor_y,
                     editor_values,
                     stdout,
                     buffer,
                     true,
                 );
+                if move_to_clipboard {
+                    clipboard.set_save(line);
+                }
             }
             Action::GoToEndOfWord {
                 characters_are_brakes,
@@ -166,8 +169,17 @@ pub fn handle_actions(
                     stdout,
                 );
             }
-            Action::DeleteSelection => {
+            Action::DeleteSelection { move_to_clipboard } => {
                 let redraw_start_line = selection_manager.from_y;
+                if move_to_clipboard {
+                    clipboard.copy(
+                        selection_manager.from_x,
+                        selection_manager.from_y,
+                        selection_manager.to_x,
+                        selection_manager.to_y,
+                        buffer,
+                    );
+                }
                 selection_manager.delete_selection(buffer);
                 redraw_whole_document_from(redraw_start_line, buffer, editor_values, stdout);
             }

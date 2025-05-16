@@ -7,8 +7,14 @@ pub struct Clipboard {
     pub save: Vec<String>,
 }
 impl Clipboard {
+    pub fn set_save(&mut self, text: String) {
+        self.save.clear();
+        self.save.push(text);
+    }
     pub fn paste(&self, x: usize, y: usize, buffer: &mut Buffer) {
-        buffer.add_text_layers_up_to(y);
+        if y >= buffer.buffer_len() {
+            buffer.add_text_layers_up_to(y);
+        }
 
         let save_len = self.save.len();
         if save_len == 0 {
@@ -17,6 +23,12 @@ impl Clipboard {
 
         let first_line = buffer.read_line(y).to_owned();
         let text_to_add_to_end = &first_line[x..first_line.len()];
+        if save_len == 1 {
+            let first_line_new_text =
+                first_line[0..x].to_string() + &self.save[0] + text_to_add_to_end;
+            buffer.override_line(y, first_line_new_text);
+            return;
+        }
         let first_line_new_text = first_line[0..x].to_string() + &self.save[0];
         buffer.override_line(y, first_line_new_text);
         if save_len > 2 {

@@ -55,11 +55,14 @@ pub(super) fn remove_line(
     stdout: &mut Stdout,
     buffer: &mut Buffer,
     move_back: bool,
-) {
+) -> String {
+    let output = buffer.read_line(line).to_owned();
     buffer.remove_line(line);
     if move_back {
         handler::move_cursor_by(true, 0, 0, editor_values, stdout, buffer);
     }
     // all lines move back so i have to redraw all lines from this  to end
     drawing::redraw_lines(line, buffer.buffer_len() + 1, buffer, editor_values, stdout);
+
+    return output;
 }

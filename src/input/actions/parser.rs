@@ -26,7 +26,9 @@ pub fn complete_parsing_action(name: String, values: Vec<String>, line: u16) -> 
         "SelectCurrentWords" => Action::SelectCurrentWords {
             characters_are_brakes: get_value_bool(0, &action_parser),
         },
-        "DeleteSelection" => Action::DeleteSelection,
+        "DeleteSelection" => Action::DeleteSelection {
+            move_to_clipboard: get_value_bool(0, &action_parser),
+        },
 
         "MoveCursor" => Action::MoveCursor {
             x: get_value_i32(0, &action_parser),
@@ -43,7 +45,10 @@ pub fn complete_parsing_action(name: String, values: Vec<String>, line: u16) -> 
             characters_are_brakes: get_value_bool(0, &action_parser),
         },
         "InsertLine" => Action::InsertLine,
-        "DeleteCurrentLine" => Action::DeleteCurrentLine,
+        "DeleteCurrentLine" => Action::DeleteCurrentLine {
+            move_to_clipboard: get_value_bool(0, &action_parser),
+        },
+
         "InsertText" => Action::InsertText(safe_aces_value(0, &action_parser)),
         "WriteText" => Action::WriteText(safe_aces_value(0, &action_parser)),
         "RemoveText" => Action::RemoveText {
