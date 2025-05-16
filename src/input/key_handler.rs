@@ -133,6 +133,7 @@ fn type_text_in_insert_mode(keystroke: &Keystroke) -> String {
     // I do this so when i press like backspace or space i don't write "backspace" as a
     // word
     let mut output = match keystroke.keycode {
+        crossterm::event::KeyCode::Tab => "\t".to_string(),
         crossterm::event::KeyCode::Char(char) => char.to_string(),
         _ => {
             return String::new();
