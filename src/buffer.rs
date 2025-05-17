@@ -24,6 +24,15 @@ impl Buffer {
             ]),
         }
     }
+    pub fn read_all_buffer(&self) -> String {
+        let mut output = String::new();
+        for line in &self.text_lines {
+            output += line;
+            output += "\n";
+        }
+
+        return output;
+    }
     pub fn write_text(&mut self, x: usize, y: usize, text: &String) {
         if self.text_lines.len() <= y {
             self.add_text_layers_up_to(y);

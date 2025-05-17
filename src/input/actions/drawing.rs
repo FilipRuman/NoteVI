@@ -6,8 +6,8 @@ use crossterm::{
 };
 
 use super::handler;
+use crate::text_formatting;
 use crate::{EditorValues, buffer::Buffer};
-
 pub(super) fn redraw_lines(
     from: usize,
     to: usize,
@@ -33,7 +33,12 @@ pub(super) fn redraw_lines(
             }
         }
         handler::override_cursor_position(0, y, stdout);
-        stdout.queue(style::Print(&text_to_draw)).unwrap();
+
+        stdout
+            .queue(style::Print(text_formatting::get_style_for_line(
+                text_to_draw,
+            )))
+            .unwrap();
     }
 
     handler::move_cursor_up_to(
