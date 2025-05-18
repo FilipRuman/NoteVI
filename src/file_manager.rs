@@ -14,6 +14,30 @@ pub fn save_buffer(buffer: &Buffer, file_path: String) {
         Err(E) => Logger::default_log(format!("saving buffer did not succeed {}", E)),
     }
 }
+pub fn create_file(file_path: String) {
+    Logger::default_log(format!("create_file {}", file_path));
+    let result = fs::write(file_path, "");
+    match result {
+        Ok(_) => {}
+        Err(E) => Logger::default_log(format!("creating file did not succeed {}", E)),
+    };
+}
+pub fn remove_file(path: String) {
+    Logger::default_log(format!("remove file path:{}", path));
+    let result = fs::remove_file(path);
+    match result {
+        Ok(_) => {}
+        Err(E) => Logger::default_log(format!("removing file did not succeed {}", E)),
+    };
+}
+pub fn rename_file(from: String, to: String) {
+    Logger::default_log(format!("rename file form:{} to:{}", from, to));
+    let result = fs::rename(from, to);
+    match result {
+        Ok(_) => {}
+        Err(E) => Logger::default_log(format!("renaming file did not succeed {}", E)),
+    };
+}
 pub fn get_all_files_in_directory(path: String) -> Vec<String> {
     let dir_iterator = match fs::read_dir(path) {
         Ok(iterator) => iterator,

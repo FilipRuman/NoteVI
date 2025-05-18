@@ -16,9 +16,8 @@ use super::{buffer_editing, drawing::redraw_whole_buffer_from};
 use crate::{
     EditMode, EditorValues,
     buffer::Buffer,
-    clipboard::{self, Clipboard},
+    clipboard::Clipboard,
     file_manager::save_buffer,
-    input::key_handler::KeyHandler,
     menu::{self, display_file_selection},
     selection_manager::SelectionManager,
 };
@@ -128,6 +127,10 @@ pub fn handle_actions(
                 }
             }
             Action::SaveBuffer => {
+                if editor_values.in_menu {
+                    menu::handle_creating_and_renaming_new_save_files(buffer, editor_values);
+                    continue;
+                }
                 save_buffer(buffer, editor_values.current_file_path.to_owned());
             }
             Action::DeleteCurrentLine { move_to_clipboard } => {
