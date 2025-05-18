@@ -51,10 +51,6 @@ impl SelectionManager {
         self.to_y = line;
     }
     pub fn delete_selection(&mut self, buffer: &mut Buffer) {
-        if self.from_y > self.to_y || (self.from_y == self.to_y && self.from_x > self.to_x) {
-            self.sawp_to_and_from();
-        }
-
         Logger::default_log(format!("delete_selection"));
 
         if self.from_y == self.to_y {
@@ -63,11 +59,27 @@ impl SelectionManager {
             self.clear_selection();
             return;
         }
-        if self.from_y + 1 < self.to_y {
-            buffer.remove_lines(self.from_y + 1, self.to_y - 1);
+
+        let mut offset_from_deleted_lines = 0;
+        if buffer.remove_text(self.from_y, self.from_x, buffer.line_len(self.from_y)) {
+            offset_from_deleted_lines += 1;
         }
 
-        buffer.remove_text(self.to_y, 0, self.to_x);
+        if buffer.remove_text(
+            self.to_y - offset_from_deleted_lines,
+            0,
+            (self.to_x + 1).min(buffer.line_len(self.to_y)),
+        ) {
+            offset_from_deleted_lines += 1;
+        }
+
+        if self.from_y + 1 < self.to_y {
+            buffer.remove_lines(
+                self.from_y + 1 - offset_from_deleted_lines,
+                self.to_y - offset_from_deleted_lines,
+            );
+        }
+
         self.clear_selection();
     }
 

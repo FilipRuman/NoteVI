@@ -69,7 +69,11 @@ impl Buffer {
         // cursor is at the beginning of a line so move whole line back
         // also if the line selected is the last one don't do it because it will delete the whole line
         Logger::default_log(format!("remove_text: line {} ", line));
-        if to == 0 && line != 1 {
+        if to >= line_len {
+            self.remove_line(line);
+            return true;
+        }
+        if to == 0 {
             let current_line_text = &(self.text_lines[line].to_owned());
             self.text_lines[line - 1] += current_line_text;
 
@@ -104,7 +108,7 @@ impl Buffer {
     }
     pub fn remove_lines(&mut self, from: usize, to: usize) {
         for line in from..to {
-            self.text_lines.remove(line);
+            self.text_lines.remove(from);
         }
     }
     pub fn insert_line(&mut self, line: usize) {
