@@ -1,8 +1,26 @@
 // Todo:: add variables declare to e.g. declare $leader$ 
+visual{
+	"<Escape>": NormalMode();
+	"d":  DeleteSelection(true) NormalMode();
+	" d":  DeleteSelection(false) NormalMode();
+	"y":  CopySelected() NormalMode();
+
+	"l": MoveCursor(1, 0) UpdateVisualModeSelection();
+	"h": MoveCursor(-1, 0) UpdateVisualModeSelection();
+	"k": MoveCursor(0, 1) UpdateVisualModeSelection();
+	"j": MoveCursor(0, -1) UpdateVisualModeSelection();
+	"e": GoToEndOfWord(true) UpdateVisualModeSelection();
+	"E": GoToEndOfWord(false) UpdateVisualModeSelection();
+	"b": GoToStartOfWord(true) UpdateVisualModeSelection();
+	"B": GoToStartOfWord(false) UpdateVisualModeSelection();
+        "ts": DebugSelection();
+}
 
 normal{
 	"q": Quit();
 	"_s":  SaveBuffer(); 
+
+	"v": VisualMode();
 
 	" dd": DeleteCurrentLine(false);
 	"dd": DeleteCurrentLine(true);
@@ -26,6 +44,8 @@ normal{
 	"tw": WriteText(Test);
         "ts": DebugSelection();
 	"yy": SelectCurrentLine() CopySelected(); 
+	"yaw": SelectCurrentWords(true) CopySelected();
+	"yaW": SelectCurrentWords(false) CopySelected();
 	"p":  PasteFromClipboard(); 
 	"_c": SelectCurrentLine() CopySelected();
 	"_v": PasteFromClipboard();

@@ -37,6 +37,7 @@ pub struct EditorValues {
 pub enum EditMode {
     Normal,
     Insert,
+    Visual,
 }
 
 fn main() {
@@ -48,6 +49,8 @@ fn main() {
         to_x: 0,
         from_x: 0,
         to_y: 0,
+        selection_mode_start_y: 0,
+        selection_mode_start_x: 0,
     };
 
     let mut editor_values = EditorValues {

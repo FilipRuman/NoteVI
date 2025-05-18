@@ -75,6 +75,7 @@ impl Parser {
 pub struct ShortcutParsingOutput {
     pub normal: Vec<Shortcut>,
     pub insert: Vec<Shortcut>,
+    pub visual: Vec<Shortcut>,
 }
 pub fn parse_shortcuts_to_key_handler() -> ShortcutParsingOutput {
     if fs::exists(CONFIG_PATH).is_err() {
@@ -100,11 +101,13 @@ pub fn parse_shortcuts_to_key_handler() -> ShortcutParsingOutput {
     let mut output = ShortcutParsingOutput {
         normal: Vec::new(),
         insert: Vec::new(),
+        visual: Vec::new(),
     };
     while parser.current_token_kind() != &TokenKind::EndOfFile {
         let parsed_layer_output = parse_layer(&mut parser);
 
         match parsed_layer_output.0.as_str() {
+            "visual" => output.visual = parsed_layer_output.1,
             "normal" => output.normal = parsed_layer_output.1,
             "insert" => output.insert = parsed_layer_output.1,
 

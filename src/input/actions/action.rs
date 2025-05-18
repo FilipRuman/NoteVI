@@ -27,6 +27,9 @@ pub enum Action {
     Quit,
     NormalMode,
     InsertMode,
+    VisualMode,
+
+    UpdateVisualModeSelection,
     ToDo,
 
     InsertLine,

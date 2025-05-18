@@ -18,7 +18,11 @@ pub fn startup() -> KeyHandler {
     let shortcuts_output = shortcuts_parser::parse_shortcuts_to_key_handler();
 
     Logger::default_log("input_handler::startup".to_string());
-    return KeyHandler::new(shortcuts_output.normal, shortcuts_output.insert);
+    return KeyHandler::new(
+        shortcuts_output.visual,
+        shortcuts_output.normal,
+        shortcuts_output.insert,
+    );
 }
 pub fn handle_key_input(
     editor_values: &mut EditorValues,

@@ -10,7 +10,7 @@ use std::{
     u16, usize,
 };
 
-use super::drawing;
+use super::drawing::{self, redraw_whole_viewport};
 use super::{action::Action, drawing::redraw_lines};
 use super::{buffer_editing, drawing::redraw_whole_buffer_from};
 use crate::{
@@ -49,10 +49,28 @@ pub fn handle_actions(
                 stdout
                     .execute(cursor::SetCursorStyle::BlinkingBlock)
                     .unwrap();
+                redraw_whole_viewport(buffer, editor_values, stdout);
+            }
+            Action::VisualMode => {
+                editor_values.mode = EditMode::Visual;
+
+                selection_manager.selection_mode_start_x = editor_values.cursor_x;
+                selection_manager.selection_mode_start_y = editor_values.cursor_y;
+
+                stdout.execute(cursor::SetCursorStyle::SteadyBlock).unwrap();
             }
             Action::InsertMode => {
                 editor_values.mode = EditMode::Insert;
                 stdout.execute(cursor::SetCursorStyle::BlinkingBar).unwrap();
+            }
+            Action::UpdateVisualModeSelection => {
+                selection_manager.handle_visual_mode(editor_values);
+                drawing::handle_displaying_visual_mode_selection(
+                    selection_manager,
+                    buffer,
+                    editor_values,
+                    stdout,
+                );
             }
             Action::ChangeCursorPosition { x: _, y: _ } => todo!(),
             Action::WriteText(text) => {

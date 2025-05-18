@@ -1,4 +1,5 @@
 use crate::{
+    EditorValues,
     buffer::{self, Buffer},
     logger::Logger,
 };
@@ -8,8 +9,21 @@ pub struct SelectionManager {
     pub from_y: usize,
     pub to_x: usize,
     pub to_y: usize,
+    pub selection_mode_start_x: usize,
+    pub selection_mode_start_y: usize,
 }
 impl SelectionManager {
+    pub fn handle_visual_mode(&mut self, editor_values: &EditorValues) {
+        self.from_x = self.selection_mode_start_x;
+        self.from_y = self.selection_mode_start_y;
+
+        self.to_x = editor_values.cursor_x;
+        self.to_y = editor_values.cursor_y;
+
+        if self.from_y > self.to_y || (self.from_y == self.to_y && self.from_x > self.to_x) {
+            self.sawp_to_and_from();
+        }
+    }
     pub fn select_word(
         &mut self,
         buffer: &mut Buffer,
@@ -37,6 +51,10 @@ impl SelectionManager {
         self.to_y = line;
     }
     pub fn delete_selection(&mut self, buffer: &mut Buffer) {
+        if self.from_y > self.to_y || (self.from_y == self.to_y && self.from_x > self.to_x) {
+            self.sawp_to_and_from();
+        }
+
         Logger::default_log(format!("delete_selection"));
 
         if self.from_y == self.to_y {
@@ -51,6 +69,15 @@ impl SelectionManager {
 
         buffer.remove_text(self.to_y, 0, self.to_x);
         self.clear_selection();
+    }
+
+    fn sawp_to_and_from(&mut self) {
+        let new_to_x = self.from_x;
+        let new_to_y = self.from_y;
+        self.from_x = self.to_x;
+        self.from_y = self.to_y;
+        self.to_x = new_to_x;
+        self.to_y = new_to_y;
     }
     pub fn clear_selection(&mut self) {
         self.to_x = 0;

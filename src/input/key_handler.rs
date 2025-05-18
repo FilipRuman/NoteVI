@@ -18,12 +18,22 @@ impl Layer {
 }
 pub struct KeyHandler {
     pub last_keystrokes: Vec<Keystroke>,
+
+    pub visual_layer: Layer,
     pub insert_layer: Layer,
     pub normal_layer: Layer,
 }
 
 impl KeyHandler {
-    pub fn new(normal_shortcuts: Vec<Shortcut>, insert_shortcuts: Vec<Shortcut>) -> KeyHandler {
+    pub fn new(
+        visual_shortcuts: Vec<Shortcut>,
+        normal_shortcuts: Vec<Shortcut>,
+        insert_shortcuts: Vec<Shortcut>,
+    ) -> KeyHandler {
+        Logger::default_log(format!("normal_shortcuts:{:?}", &visual_shortcuts));
+        Logger::default_log(format!("visual_shortcuts:{:?}", &insert_shortcuts));
+        Logger::default_log(format!("insert_shortcuts:{:?}", &normal_shortcuts));
+        let visual_segments = KeyHandler::split_shortcuts_into_segments(&visual_shortcuts);
         let normal_segments = KeyHandler::split_shortcuts_into_segments(&normal_shortcuts);
         let insert_segments = KeyHandler::split_shortcuts_into_segments(&insert_shortcuts);
 
@@ -31,6 +41,12 @@ impl KeyHandler {
 
         KeyHandler {
             last_keystrokes: Vec::new(),
+
+            visual_layer: Layer {
+                shortcuts: visual_shortcuts,
+                segments: visual_segments,
+                insert_text_on_type: false,
+            },
             normal_layer: Layer {
                 shortcuts: normal_shortcuts,
                 segments: normal_segments,
@@ -73,12 +89,8 @@ impl KeyHandler {
         keystroke: Keystroke,
         editor_values: &EditorValues,
     ) -> Vec<Action> {
-        Logger::default_log(format!(
-            "handle_new_keystroke {:?}mode keystroke:{:?} last keystrokes:{:?}",
-            editor_values.mode, keystroke, self.last_keystrokes,
-        ));
-
         let layer = match editor_values.mode {
+            EditMode::Visual => &self.visual_layer,
             EditMode::Normal => &self.normal_layer,
             EditMode::Insert => &self.insert_layer,
         };
@@ -116,6 +128,11 @@ impl KeyHandler {
                 self.last_keystrokes.clear();
             }
         }
+        Logger::default_log(format!(
+            "handle_new_keystroke {:?}mode keystroke:{:?} last keystrokes:{:?} output:{:?}",
+            editor_values.mode, keystroke, self.last_keystrokes, output
+        ));
+
         output
     }
     fn remove_last_typed_keystrokes(&self, output: &mut Vec<Action>) {
