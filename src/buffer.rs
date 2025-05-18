@@ -24,6 +24,13 @@ impl Buffer {
             ]),
         }
     }
+    pub fn set_buffer(&mut self, new_text: Vec<String>) {
+        Logger::default_log(format!("set_buffer: {:?}", new_text));
+        self.text_lines = new_text;
+    }
+    pub fn clear_buffer(&mut self) {
+        self.text_lines.clear();
+    }
     pub fn read_all_buffer(&self) -> String {
         let mut output = String::new();
         for line in &self.text_lines {

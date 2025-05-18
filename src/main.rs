@@ -1,10 +1,13 @@
 mod buffer;
 mod buffer_parser;
 mod clipboard;
+mod file_manager;
 mod input;
 mod lexer;
 mod logger;
+mod menu;
 mod selection_manager;
+mod text_formatting;
 
 use buffer::Buffer;
 use clipboard::Clipboard;
@@ -23,9 +26,12 @@ pub struct EditorValues {
     cursor_x: usize,
     // it is needed so, when you move your cursor thru text with "hols", your cursor stays at the
     // original
+    current_file_path: String,
     desired_cursor_x: usize,
     mode: EditMode,
     quit: bool,
+    file_names: Vec<String>,
+    in_menu: bool,
 }
 #[derive(Debug)]
 pub enum EditMode {
@@ -35,32 +41,24 @@ pub enum EditMode {
 
 fn main() {
     let mut logger = Logger::new(LOGGING_PATH.to_string());
-
-    // logger.log(format!(
-    //     "Test : {:?}",
-    //     Shortcut::new_parse_keystrokes("_c", [Action::NormalMode].to_vec())
-    // ));
     logger.log("\n\n# ------------    init    ------------\n\n".to_string());
-    // logger.log(format!(
-    //     "## test shortcut parse 1.: {:?}",
-    //     Shortcut::new_parse_keystrokes("IoWo_DD", [Action::ToDo].to_vec())
-    // ));
-    // logger.log(format!(
-    //     "## test shortcut parse 2.: {:?}",
-    //     Shortcut::new_parse_keystrokes("_I_DD", [Action::InsertMode].to_vec())
-    // ));
+
     let mut selection_manager = SelectionManager {
         from_y: 0,
         to_x: 0,
         from_x: 0,
         to_y: 0,
     };
+
     let mut editor_values = EditorValues {
+        current_file_path: String::new(),
         desired_cursor_x: 0,
         cursor_y: 1,
         cursor_x: 0,
         mode: EditMode::Normal,
         quit: false,
+        in_menu: true,
+        file_names: Vec::new(),
     };
     let mut clipboard = Clipboard { save: Vec::new() };
 
@@ -68,6 +66,11 @@ fn main() {
     let mut stdout = init(&editor_values);
     logger.log("# Start key handler".to_string());
     let mut key_handler = input::input_handler::startup();
+
+    editor_values.file_names =
+        file_manager::get_all_files_in_directory(file_manager::SAVE_FILES_PATH.to_string());
+    menu::display_file_selection(&mut buffer, &mut editor_values, &mut stdout);
+
     logger.log("\n # start end \n".to_string());
 
     loop {

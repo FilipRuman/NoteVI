@@ -23,6 +23,7 @@ pub enum Action {
         count: usize,
     },
 
+    OpenCurrentFile,
     Quit,
     NormalMode,
     InsertMode,
@@ -50,12 +51,10 @@ pub enum Action {
 
     CopySelected,
     PasteFromClipboard,
+    SaveBuffer,
     //TODO add parsing
     // StartSelection,
     // EndSelection,
     //
-    // SelectLineBeforeCursor,
-    // SelectLineAfterCursor,
-
     // MoveSelected,
 }

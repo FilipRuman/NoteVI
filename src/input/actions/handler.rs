@@ -12,12 +12,14 @@ use std::{
 
 use super::drawing;
 use super::{action::Action, drawing::redraw_lines};
-use super::{buffer_editing, drawing::redraw_whole_document_from};
+use super::{buffer_editing, drawing::redraw_whole_buffer_from};
 use crate::{
     EditMode, EditorValues,
     buffer::Buffer,
     clipboard::{self, Clipboard},
+    file_manager::save_buffer,
     input::key_handler::KeyHandler,
+    menu::{self, display_file_selection},
     selection_manager::SelectionManager,
 };
 
@@ -35,7 +37,14 @@ pub fn handle_actions(
                 move_cursor_by(true, x, -y, editor_values, stdout, buffer)
             }
             Action::InsertText(_) => todo!(),
-            Action::Quit => editor_values.quit = true,
+            Action::Quit => {
+                if editor_values.in_menu {
+                    editor_values.quit = true;
+                    continue;
+                }
+
+                display_file_selection(buffer, editor_values, stdout);
+            }
             Action::NormalMode => {
                 editor_values.mode = EditMode::Normal;
                 stdout
@@ -113,6 +122,14 @@ pub fn handle_actions(
                 );
                 move_cursor_by(false, 0, 1, editor_values, stdout, buffer);
             }
+            Action::OpenCurrentFile => {
+                if editor_values.in_menu {
+                    menu::open_current_file(buffer, editor_values, stdout);
+                }
+            }
+            Action::SaveBuffer => {
+                save_buffer(buffer, editor_values.current_file_path.to_owned());
+            }
             Action::DeleteCurrentLine { move_to_clipboard } => {
                 let line = buffer_editing::remove_line(
                     editor_values.cursor_y,
@@ -181,7 +198,7 @@ pub fn handle_actions(
                     );
                 }
                 selection_manager.delete_selection(buffer);
-                redraw_whole_document_from(redraw_start_line, buffer, editor_values, stdout);
+                redraw_whole_buffer_from(redraw_start_line, buffer, editor_values, stdout);
             }
             Action::DebugSelection => {
                 stdout.queue(cursor::MoveTo(
@@ -206,8 +223,9 @@ pub fn handle_actions(
             ),
             Action::PasteFromClipboard => {
                 clipboard.paste(editor_values.cursor_x, editor_values.cursor_y, buffer);
-                redraw_whole_document_from(editor_values.cursor_y, buffer, editor_values, stdout);
+                redraw_whole_buffer_from(editor_values.cursor_y, buffer, editor_values, stdout);
             }
+            Action::SaveBuffer => todo!(),
         }
     }
 }

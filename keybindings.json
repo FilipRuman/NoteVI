@@ -2,8 +2,7 @@
 
 normal{
 	"q": Quit();
-	"_c": ToDo();
-	"_v": ToDo();
+	"_s":  SaveBuffer(); 
 
 	" dd": DeleteCurrentLine(false);
 	"dd": DeleteCurrentLine(true);
@@ -26,9 +25,12 @@ normal{
 
 	"tw": WriteText(Test);
         "ts": DebugSelection();
-	"yy":SelectCurrentLine() CopySelected(); 
-	"p":PasteFromClipboard(); 
+	"yy": SelectCurrentLine() CopySelected(); 
+	"p":  PasteFromClipboard(); 
+	"_c": SelectCurrentLine() CopySelected();
+	"_v": PasteFromClipboard();
 
+        "<Enter>": OpenCurrentFile();
 }
 
 

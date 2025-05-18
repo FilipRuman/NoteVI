@@ -18,6 +18,8 @@ pub fn complete_parsing_action(name: String, values: Vec<String>, line: u16) -> 
     };
 
     match name.as_str() {
+        "SaveBuffer" => Action::SaveBuffer,
+        "OpenCurrentFile" => Action::OpenCurrentFile,
         "CopySelected" => Action::CopySelected,
         "PasteFromClipboard" => Action::PasteFromClipboard,
         "SelectCurrentLine" => Action::SelectCurrentLine,

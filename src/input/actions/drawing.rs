@@ -6,9 +6,9 @@ use crossterm::{
 };
 
 use super::handler;
-use crate::text_formatting;
 use crate::{EditorValues, buffer::Buffer};
-pub(super) fn redraw_lines(
+use crate::{logger::Logger, text_formatting};
+pub fn redraw_lines(
     from: usize,
     to: usize,
     buffer: &Buffer,
@@ -34,11 +34,9 @@ pub(super) fn redraw_lines(
         }
         handler::override_cursor_position(0, y, stdout);
 
-        stdout
-            .queue(style::Print(text_formatting::get_style_for_line(
-                text_to_draw,
-            )))
-            .unwrap();
+        stdout.queue(style::Print(text_formatting::get_style_for_line(
+            text_to_draw,
+        )));
     }
 
     handler::move_cursor_up_to(
@@ -48,8 +46,15 @@ pub(super) fn redraw_lines(
         stdout,
     );
 }
-
-pub(super) fn redraw_whole_document_from(
+pub fn redraw_whole_viewport(
+    buffer: &Buffer,
+    editor_values: &mut EditorValues,
+    stdout: &mut Stdout,
+) {
+    let terminal_len = crossterm::terminal::size().unwrap().0 as usize;
+    redraw_lines(1, terminal_len + 1, buffer, editor_values, stdout);
+}
+pub(super) fn redraw_whole_buffer_from(
     from: usize,
     buffer: &Buffer,
     editor_values: &mut EditorValues,
