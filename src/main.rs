@@ -8,6 +8,7 @@ mod logger;
 mod menu;
 mod selection_manager;
 mod text_formatting;
+mod undo_tree;
 
 use buffer::Buffer;
 use clipboard::Clipboard;
@@ -19,7 +20,10 @@ use crossterm::{
 use input::input_handler::{self, handle_key_input};
 use logger::{LOGGING_PATH, Logger};
 use selection_manager::SelectionManager;
-use std::io::{Write, stdout};
+use std::{
+    io::{Write, stdout},
+    rc::Rc,
+};
 
 pub struct EditorValues {
     cursor_y: usize,
@@ -32,6 +36,7 @@ pub struct EditorValues {
     quit: bool,
     file_names: Vec<String>,
     in_menu: bool,
+    current_undo_node: undo_tree::UndoNode,
 }
 #[derive(Debug)]
 pub enum EditMode {
